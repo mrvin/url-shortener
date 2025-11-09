@@ -1,12 +1,14 @@
-build:
-	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env build
-up:
-	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env up
-run: build up
-down:
-	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env down
 lint:
 	golangci-lint run ./...
+check-format:
+	test -z $$(go fmt ./...)
+build:
+	go build -ldflags '-w -s' -o bin/url-shortener cmd/url-shortener/main.go
+up:
+	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env up
+down:
+	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env down
 
-.PHONY: build up run down lint
+
+.PHONY: lint check-format build up run down 
 

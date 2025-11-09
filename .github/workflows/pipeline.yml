@@ -1,0 +1,121 @@
+name: CI Checks
+
+on:
+  push:
+    branches:
+    - main
+    tags:
+    - 'v[0-9]+.[0-9]+.[0-9]+'
+
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  lint-test-build:
+    name: Lint Test Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up go 1.25
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25.4'
+
+    - name: Check out code into the go module directory
+      uses: actions/checkout@v4
+
+    - name: Run format check
+      run: make check-format
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v8
+      with:
+        version: 'v2.6.1'
+        args: --timeout 5m --config=.golangci.yml
+
+    - name: Download go modules
+      run: go mod download
+
+    - name: Build binary
+      run: make build
+
+    - name: Archive binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: url-shortener
+        path: bin/url-shortener
+
+  deliver:
+    name: Release
+    permissions: write-all
+    runs-on: ubuntu-latest
+    needs: lint-test-build
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    steps:
+
+    - name: Check out code into the go module directory
+      uses: actions/checkout@v4
+
+    - name: Download binary
+      uses: actions/download-artifact@v4
+      with:
+        name: url-shortener
+
+    - name: Changelog
+      id: changelog
+      uses: requarks/changelog-action@v1.10.3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ github.ref_name }}
+        writeToFile: false
+
+    - name: Create release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ${{ steps.changelog.outputs.changes }}
+        draft: false
+        prerelease: false
+
+    - name: Upload release binary
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url:
+          ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./url-shortener
+        asset_name: url-shortener
+        asset_content_type: application/octet-stream
+
+  containerize:
+    name: Build and Push Docker Image
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    needs: lint-test-build
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    steps:
+
+    - name: Check out code into the go module directory
+      uses: actions/checkout@v4
+
+    - name: Login to github container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{github.actor}}
+        password: ${{secrets.GITHUB_TOKEN}}
+
+    - name: Build and push docker image
+      uses: docker/build-push-action@v5
+      with:
+        file: 'cmd/url-shortener/Dockerfile'
+        push: true
+        tags: 'ghcr.io/${{ github.actor }}/url-shortener:${{ github.ref_name }}'

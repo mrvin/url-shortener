@@ -1,5 +1,5 @@
 ## Build
-FROM golang:1.25.3-alpine AS build
+FROM golang:1.25.4-alpine AS build
 
 LABEL maintainer="mrvin v.v.vinogradovv@gmail.com"
 
@@ -11,12 +11,13 @@ WORKDIR /app
 COPY cmd/url-shortener cmd/url-shortener
 COPY internal internal
 COPY pkg pkg
+COPY Makefile ./
 
 # Copy and download dependency using go mod.
 COPY go.mod go.sum ./
 RUN go mod download
 
-RUN cd cmd/url-shortener/ && make build
+RUN make build
 
 ## Deploy
 FROM scratch
