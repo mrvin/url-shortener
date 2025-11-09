@@ -1,0 +1,34 @@
+services:
+    url-shortener:
+        build:
+         context: ../
+         dockerfile: cmd/url-shortener/Dockerfile
+        ports:
+         - "8081:8081"
+        env_file:
+         - ../configs/url-shortener.env
+        depends_on:
+         - migrate
+
+    migrate:
+        image: migrate/migrate:v4.17.1
+        command: ["-path", "/migrations", "-database",  "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable", "up"]
+        depends_on:
+          postgres:
+            condition: service_healthy
+        volumes:
+         - ./../migrations:/migrations
+
+    # Create service with PostgreSQL.
+    postgres:
+        image: postgres:17.0-alpine3.20
+        ports:
+         - "5432"
+        user: root
+        env_file:
+         - ../configs/url-shortener.env
+        healthcheck:
+          test: ["CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}"]
+          interval: 3s
+        volumes:
+         - ${HOME}/volumes_docker/url-shortener/postgres-data:/var/lib/postgresql/data
