@@ -36,7 +36,8 @@ type Storage struct {
 	selectURL    *sql.Stmt
 	deleteURL    *sql.Stmt
 
-	selectCountURL *sql.Stmt
+	selectURLs      *sql.Stmt
+	selectTotalURLs *sql.Stmt
 }
 
 func New(ctx context.Context, conf *Conf) (*Storage, error) {
@@ -83,8 +84,8 @@ func (s *Storage) GetUser(ctx context.Context, name string) (*storage.User, erro
 	return &user, nil
 }
 
-func (s *Storage) CreateURL(ctx context.Context, userName, urlToSave, alias string) error {
-	if _, err := s.insertURL.ExecContext(ctx, urlToSave, alias, userName); err != nil {
+func (s *Storage) CreateURL(ctx context.Context, username, urlToSave, alias string) error {
+	if _, err := s.insertURL.ExecContext(ctx, urlToSave, alias, username); err != nil {
 		var pgErr *pq.Error
 		if errors.As(err, &pgErr) {
 			if pgErr.Code.Name() == "unique_violation" {
@@ -110,8 +111,8 @@ func (s *Storage) GetURL(ctx context.Context, alias string) (string, error) {
 	return url, nil
 }
 
-func (s *Storage) DeleteURL(ctx context.Context, userName, alias string) error {
-	res, err := s.deleteURL.ExecContext(ctx, userName, alias)
+func (s *Storage) DeleteURL(ctx context.Context, username, alias string) error {
+	res, err := s.deleteURL.ExecContext(ctx, username, alias)
 	if err != nil {
 		return fmt.Errorf("delete url: %w", err)
 	}
@@ -126,17 +127,41 @@ func (s *Storage) DeleteURL(ctx context.Context, userName, alias string) error {
 	return nil
 }
 
-func (s *Storage) GetCountURL(ctx context.Context, userName, alias string) (int64, error) {
-	var count int64
+func (s *Storage) GetURLs(ctx context.Context, username string) ([]storage.URL, int64, error) {
+	urls := make([]storage.URL, 0)
 
-	if err := s.selectCountURL.QueryRowContext(ctx, userName, alias).Scan(&count); err != nil {
+	rows, err := s.selectURLs.QueryContext(ctx, username)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, storage.ErrURLNotFound
+			return urls, 0, nil
 		}
-		return 0, fmt.Errorf("can't scan count for alias: %w", err)
+		return nil, 0, fmt.Errorf("can't get rows urls: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var url storage.URL
+		err = rows.Scan(
+			&url.URL,
+			&url.Alias,
+			&url.Count,
+			&url.CreatedAt,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("can't scan next row: %w", err)
+		}
+		urls = append(urls, url)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, fmt.Errorf("rows error: %w", err)
 	}
 
-	return count, nil
+	var total int64
+	if err := s.selectTotalURLs.QueryRowContext(ctx, username).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("can't scan total urls: %w", err)
+	}
+
+	return urls, total, nil
 }
 
 func (s *Storage) Close() error {
@@ -148,7 +173,8 @@ func (s *Storage) Close() error {
 	s.selectURL.Close()
 	s.deleteURL.Close()
 
-	s.selectCountURL.Close()
+	s.selectURLs.Close()
+	s.selectTotalURLs.Close()
 
 	return s.db.Close() //nolint:wrapcheck
 }
@@ -231,14 +257,23 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "delete url", err)
 	}
-	const sqlSelectCountURL = `
-		SELECT
-			count
+	const sqlSelectURLs = `
+		SELECT 
+			url,
+			alias,
+			count,
+			created_at
 		FROM url
-		WHERE user_name = $1 AND alias = $2`
-	s.selectCountURL, err = s.db.PrepareContext(ctx, sqlSelectCountURL)
+		WHERE user_name = $1`
+	s.selectURLs, err = s.db.PrepareContext(ctx, sqlSelectURLs)
 	if err != nil {
-		return fmt.Errorf(fmtStrErr, "select count", err)
+		return fmt.Errorf(fmtStrErr, "select urls", err)
+	}
+
+	const sqlSelectTotalURLs = `SELECT COUNT(alias) FROM url WHERE user_name = $1`
+	s.selectTotalURLs, err = s.db.PrepareContext(ctx, sqlSelectTotalURLs)
+	if err != nil {
+		return fmt.Errorf(fmtStrErr, "select total urls", err)
 	}
 
 	return nil

@@ -19,7 +19,7 @@ type UserCreator interface {
 
 //nolint:tagliatelle
 type RequestRegistration struct {
-	UserName string `json:"user_name"`
+	Username string `json:"user_name"`
 	Password string `json:"password"`
 }
 
@@ -51,7 +51,7 @@ func NewRegistration(creator UserCreator) http.HandlerFunc {
 			return
 		}
 		user := storage.User{
-			Name:         request.UserName,
+			Name:         request.Username,
 			HashPassword: string(hashPassword),
 			Role:         "user",
 		}

@@ -13,7 +13,7 @@ type contextKey int
 
 const (
 	contextKeyRequestID contextKey = iota
-	contextKeyUserName
+	contextKeyUsername
 )
 
 const logFileMode = 0755
@@ -69,28 +69,28 @@ func WithRequestID(ctx context.Context, requestID string) context.Context {
 	return context.WithValue(ctx, contextKeyRequestID, requestID)
 }
 
-func WithUserName(ctx context.Context, userName string) context.Context {
-	return context.WithValue(ctx, contextKeyUserName, userName)
+func WithUsername(ctx context.Context, username string) context.Context {
+	return context.WithValue(ctx, contextKeyUsername, username)
 }
 
-func GetUserNameFromCtx(ctx context.Context) (string, error) {
+func GetUsernameFromCtx(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", errors.New("ctx is nil")
 	}
-	userName, ok := ctx.Value(contextKeyUserName).(string)
+	username, ok := ctx.Value(contextKeyUsername).(string)
 	if !ok {
 		return "", errors.New("no user name in ctx")
 	}
 
-	return userName, nil
+	return username, nil
 }
 
 func (h ContextHandler) Handle(ctx context.Context, r slog.Record) error {
 	if requestID, ok := ctx.Value(contextKeyRequestID).(string); ok {
 		r.Add("requestID", requestID)
 	}
-	if userName, ok := ctx.Value(contextKeyUserName).(string); ok {
-		r.Add("userName", userName)
+	if username, ok := ctx.Value(contextKeyUsername).(string); ok {
+		r.Add("username", username)
 	}
 
 	return h.Handler.Handle(ctx, r) //nolint:wrapcheck

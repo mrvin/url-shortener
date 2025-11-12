@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 var (
@@ -21,16 +22,24 @@ type User struct {
 	Role         string `json:"role"`
 }
 
+//nolint:tagliatelle
+type URL struct {
+	URL       string    `json:"url"`
+	Alias     string    `json:"alias"`
+	Count     string    `json:"count"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type UserStorage interface {
 	CreateUser(ctx context.Context, user *User) error
 	GetUser(ctx context.Context, name string) (*User, error)
 }
 
 type URLStorage interface {
-	CreateURL(ctx context.Context, userName, urlToSave, alias string) error
+	CreateURL(ctx context.Context, username, url, alias string) error
 	GetURL(ctx context.Context, alias string) (string, error)
-	DeleteURL(ctx context.Context, userName, alias string) error
-	GetCountURL(ctx context.Context, userName, alias string) (int64, error)
+	DeleteURL(ctx context.Context, username, alias string) error
+	GetURLs(ctx context.Context, username string) ([]URL, int64, error)
 }
 
 type Storage interface {

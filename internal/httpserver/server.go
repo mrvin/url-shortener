@@ -48,7 +48,7 @@ func New(conf *Conf, defaultAliasLengthint int, st storage.Storage) *Server {
 	mux.HandleFunc(http.MethodPost+" /users", handlers.NewRegistration(st))
 
 	mux.HandleFunc(http.MethodPost+" /data/shorten", auth(handlers.NewSaveURL(st, defaultAliasLengthint), st))
-	mux.HandleFunc(http.MethodGet+" /statistics/{alias...}", auth(handlers.NewGetCount(st), st))
+	mux.HandleFunc(http.MethodGet+" /urls", auth(handlers.NewGetURLs(st), st))
 	mux.HandleFunc(http.MethodDelete+" /{alias...}", auth(handlers.NewDeleteURL(st), st))
 
 	mux.HandleFunc(http.MethodGet+" /{alias...}", handlers.NewRedirect(st))
@@ -113,13 +113,13 @@ type UserGetter interface {
 
 func auth(next http.HandlerFunc, getter UserGetter) http.HandlerFunc {
 	handler := func(res http.ResponseWriter, req *http.Request) {
-		userName, password, ok := req.BasicAuth()
+		username, password, ok := req.BasicAuth()
 		if !ok {
 			http.Error(res, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 		ctx := req.Context()
-		user, err := getter.GetUser(ctx, userName)
+		user, err := getter.GetUser(ctx, username)
 		if err != nil {
 			http.Error(res, "Unauthorized", http.StatusInternalServerError)
 			return
@@ -129,7 +129,7 @@ func auth(next http.HandlerFunc, getter UserGetter) http.HandlerFunc {
 			return
 		}
 
-		ctx = log.WithUserName(ctx, userName)
+		ctx = log.WithUsername(ctx, username)
 
 		next(res, req.WithContext(ctx)) // Pass request to next handler
 	}
