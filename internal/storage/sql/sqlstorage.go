@@ -228,7 +228,7 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 
 	// URL query.
 	const sqlInsertURL = `
-		INSERT INTO url(url, alias, user_name)
+		INSERT INTO url(url, alias, username)
 			VALUES($1, $2, $3)`
 	s.insertURL, err = s.db.PrepareContext(ctx, sqlInsertURL)
 	if err != nil {
@@ -252,7 +252,7 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 	}
 	const sqlDeleteURL = `
 		DELETE FROM url
-		WHERE user_name = $1 AND alias = $2`
+		WHERE username = $1 AND alias = $2`
 	s.deleteURL, err = s.db.PrepareContext(ctx, sqlDeleteURL)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "delete url", err)
@@ -264,13 +264,13 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 			count,
 			created_at
 		FROM url
-		WHERE user_name = $1`
+		WHERE username = $1`
 	s.selectURLs, err = s.db.PrepareContext(ctx, sqlSelectURLs)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "select urls", err)
 	}
 
-	const sqlSelectTotalURLs = `SELECT COUNT(alias) FROM url WHERE user_name = $1`
+	const sqlSelectTotalURLs = `SELECT COUNT(alias) FROM url WHERE username = $1`
 	s.selectTotalURLs, err = s.db.PrepareContext(ctx, sqlSelectTotalURLs)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "select total urls", err)

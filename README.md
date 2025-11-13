@@ -2,15 +2,15 @@
 
 Необходимо разработать сервис url-shortener для сокращения URL-адресов по примеру https://tinyurl.com/.
 Приложение должно быть реализовано в виде HTTP сервера, реализующее REST API. Сервер должен реализовывать
-6 методов и их логику:
+7 методов и их логику:
 
 #### Проверка работоспособности
-- Эндпоинт - GET /health
+- Эндпоинт - GET /api/health
 - Статус ответа 200 если сервис работает исправно
 
 ##### Пример
 ```bash
-$ curl -i -X GET 'http://localhost:8081/health'
+$ curl -i -X GET 'http://localhost:8081/api/health'
 
 {
 	"status":"OK"
@@ -18,19 +18,42 @@ $ curl -i -X GET 'http://localhost:8081/health'
 ```
 
 #### Регистрация пользователя
-- Эндпоинт - POST /users
+- Эндпоинт - POST /api/users
 - Параметры запроса:
 	- JSON-объект в теле запроса с параметрами:
-		- user_name – имя пользователя
+		- username – имя пользователя
 		- password – пароль
 - Статус ответа 201 если пользователь создан успешно
 
 ##### Пример
 ```bash
-$ curl -i -X POST 'http://localhost:8081/users' \
+$ curl -i -X POST 'http://localhost:8081/api/users' \
 -H "Content-Type: application/json" \
 -d '{
-	"user_name":"Bob",
+	"username":"Bob",
+	"password":"qwerty"
+}'
+
+{
+  	"status": "OK"
+}
+```
+
+#### Проверка учетных данных пользователя
+- Эндпоинт - POST /api/login
+- Параметры запроса:
+	- JSON-объект в теле запроса с параметрами:
+		- username – имя пользователя
+		- password – пароль
+- Статус ответа 200 если пользователь прошел проверку
+- Статус ответа 401 если пользователь не прошел проверку
+
+##### Пример
+```bash
+$ curl -i -X POST 'http://localhost:8081/api/login' \
+-H "Content-Type: application/json" \
+-d '{
+	"username":"Bob",
 	"password":"qwerty"
 }'
 
@@ -40,7 +63,7 @@ $ curl -i -X POST 'http://localhost:8081/users' \
 ```
 
 #### Создание нового сокращенного URL-адреса
-- Эндпоинт: POST /data/shorten
+- Эндпоинт: POST /api/data/shorten
 - Параметры запроса:
 	- JSON-объект в теле запроса с параметрами:
 		- url – исходный, полный URL-адрес
@@ -50,7 +73,7 @@ $ curl -i -X POST 'http://localhost:8081/users' \
 
 ##### Пример
 ```bash
-$ curl --user Bob:qwerty -i -X POST 'http://localhost:8081/data/shorten' \
+$ curl --user Bob:qwerty -i -X POST 'http://localhost:8081/api/data/shorten' \
 -H "Content-Type: application/json" \
 -d '{
 	"url":"https://en.wikipedia.org/wiki/Systems_design",
@@ -76,12 +99,12 @@ $ curl -i -X GET 'http://localhost:8081/zn9edcu'
 ```
 
 #### Удаление сокращенного URL-адреса
-- Эндпоинт: DELETE /{alias}
+- Эндпоинт: DELETE /api/{alias}
 - Статус ответа 200 если URL-адреса c 'alias' удален успешно
 
 ##### Пример
 ```bash
-$ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8081/zn9edcu'
+$ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8081/api/zn9edcu'
 
 {
 	"status":"OK"
@@ -89,7 +112,7 @@ $ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8081/zn9edcu'
 ```
 
 #### Получение списка всех сокращенных URL-адресов пользователя
-- Эндпоинт: GET /urls
+- Эндпоинт: GET /api/urls
 - Ответ должен содержать общее количество сокращенных URL-адресов пользователя (total) и в теле массив JSON-объектов с информацией о сокращенных URL-адресах пользователя. Каждый объект содержит параметры:
 	- url - исходный, полный URL-адрес
 	- alias - сокращенный путь
@@ -99,7 +122,7 @@ $ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8081/zn9edcu'
 
 ##### Пример
 ```bash
-$ curl --user Bob:qwerty -i -X GET 'http://localhost:8081/urls'
+$ curl --user Bob:qwerty -i -X GET 'http://localhost:8081/api/urls'
 
 {
   "urls": [
@@ -129,8 +152,8 @@ $ make up
 - Вынести encode url в отдельный пакет и добавить модульные тесты.
 - Добавить модульные тесты для всех методов (обработчиков).
 - Добавить интеграционные тесты.
-- user_name -> username
 - url -> urls
+- 8081 -> 8080
 
 ### Полезные ссылки
 - [Пишем REST API сервис на Go - УЛЬТИМАТИВНЫЙ гайд](https://www.youtube.com/watch?v=rCJvW2xgnk0)

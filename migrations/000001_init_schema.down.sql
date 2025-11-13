@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS users;
 
 DROP TABLE IF EXISTS url;
-DROP INDEX IF EXISTS idx_url_user_name;
+DROP INDEX IF EXISTS idx_url_username;
 
 DROP FUNCTION IF EXISTS get_url;

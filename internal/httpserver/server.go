@@ -43,14 +43,16 @@ type Server struct {
 func New(conf *Conf, defaultAliasLengthint int, st storage.Storage) *Server {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc(http.MethodGet+" /health", handlers.Health)
+	mux.HandleFunc(http.MethodGet+" /api/health", handlers.Health)
 
-	mux.HandleFunc(http.MethodPost+" /users", handlers.NewRegistration(st))
+	mux.HandleFunc(http.MethodPost+" /api/users", handlers.NewRegistration(st))
+	mux.HandleFunc(http.MethodPost+" /api/login", handlers.NewLogin(st))
 
-	mux.HandleFunc(http.MethodPost+" /data/shorten", auth(handlers.NewSaveURL(st, defaultAliasLengthint), st))
-	mux.HandleFunc(http.MethodGet+" /urls", auth(handlers.NewGetURLs(st), st))
-	mux.HandleFunc(http.MethodDelete+" /{alias...}", auth(handlers.NewDeleteURL(st), st))
+	mux.HandleFunc(http.MethodPost+" /api/data/shorten", auth(handlers.NewSaveURL(st, defaultAliasLengthint), st))
+	mux.HandleFunc(http.MethodGet+" /api/urls", auth(handlers.NewGetURLs(st), st))
+	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", auth(handlers.NewDeleteURL(st), st))
 
+	//	mux.HandleFunc(http.MethodGet+" /check/{alias...}", handlers.NewCheck(st), st))
 	mux.HandleFunc(http.MethodGet+" /{alias...}", handlers.NewRedirect(st))
 
 	loggerServer := logger.Logger{Inner: mux}

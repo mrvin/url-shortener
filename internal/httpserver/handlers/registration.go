@@ -17,9 +17,8 @@ type UserCreator interface {
 	CreateUser(ctx context.Context, user *storage.User) error
 }
 
-//nolint:tagliatelle
 type RequestRegistration struct {
-	Username string `json:"user_name"`
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 

@@ -8,10 +8,10 @@ CREATE TABLE IF NOT EXISTS url(
 	alias TEXT NOT NULL UNIQUE PRIMARY KEY,
 	url TEXT NOT NULL,
 	count BIGINT NOT NULL CHECK (count >= 0) DEFAULT 0,
-	user_name TEXT references users(name) on delete cascade,
+	username TEXT references users(name) on delete cascade,
 	created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_url_user_name ON url(user_name);
+CREATE INDEX IF NOT EXISTS idx_url_username ON url(username);
 
 CREATE OR REPLACE FUNCTION get_url(alias_for_url TEXT)
 RETURNS TEXT
