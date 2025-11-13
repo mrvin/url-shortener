@@ -22,6 +22,8 @@ RUN make build
 ## Deploy
 FROM scratch
 
+LABEL maintainer="mrvin v.v.vinogradovv@gmail.com"
+
 WORKDIR /
 
 COPY --from=build ["/usr/share/zoneinfo", "/usr/share/zoneinfo"]
@@ -29,6 +31,6 @@ COPY --from=build ["/app/bin/url-shortener", "/usr/local/bin/url-shortener"]
 
 ENV TZ=Europe/Moscow
 
-EXPOSE 8081
+EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/url-shortener"]

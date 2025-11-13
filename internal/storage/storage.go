@@ -40,6 +40,7 @@ type URLStorage interface {
 	GetURL(ctx context.Context, alias string) (string, error)
 	DeleteURL(ctx context.Context, username, alias string) error
 	GetURLs(ctx context.Context, username string) ([]URL, int64, error)
+	CheckAlias(ctx context.Context, alias string) (bool, error)
 }
 
 type Storage interface {

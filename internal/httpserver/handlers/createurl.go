@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/mrvin/tasks-go/url-shortener/internal/logger"
@@ -56,8 +57,8 @@ func NewSaveURL(creator URLCreator, defaultAliasLengthint int) http.HandlerFunc 
 			return
 		}
 
-		if request.Alias == "urls" {
-			err := errors.New("'urls' reserved path")
+		if strings.HasPrefix(request.Alias, "api/") {
+			err := errors.New("'api/' reserved path")
 			slog.ErrorContext(req.Context(), "Save url: "+err.Error())
 			httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
 		}

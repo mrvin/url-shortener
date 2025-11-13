@@ -38,6 +38,8 @@ type Storage struct {
 
 	selectURLs      *sql.Stmt
 	selectTotalURLs *sql.Stmt
+
+	existsAlias *sql.Stmt
 }
 
 func New(ctx context.Context, conf *Conf) (*Storage, error) {
@@ -164,6 +166,15 @@ func (s *Storage) GetURLs(ctx context.Context, username string) ([]storage.URL, 
 	return urls, total, nil
 }
 
+func (s *Storage) CheckAlias(ctx context.Context, alias string) (bool, error) {
+	var exists bool
+	if err := s.existsAlias.QueryRowContext(ctx, alias).Scan(&exists); err != nil {
+		return false, fmt.Errorf("exists alias: %w", err)
+	}
+
+	return exists, nil
+}
+
 func (s *Storage) Close() error {
 	s.insertUser.Close()
 	s.selectUser.Close()
@@ -175,6 +186,8 @@ func (s *Storage) Close() error {
 
 	s.selectURLs.Close()
 	s.selectTotalURLs.Close()
+
+	s.existsAlias.Close()
 
 	return s.db.Close() //nolint:wrapcheck
 }
@@ -274,6 +287,12 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 	s.selectTotalURLs, err = s.db.PrepareContext(ctx, sqlSelectTotalURLs)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "select total urls", err)
+	}
+
+	const sqlExistsAlias = `SELECT EXISTS ( SELECT 1 FROM url WHERE alias = $1 )`
+	s.existsAlias, err = s.db.PrepareContext(ctx, sqlExistsAlias)
+	if err != nil {
+		return fmt.Errorf(fmtStrErr, "exists alias", err)
 	}
 
 	return nil

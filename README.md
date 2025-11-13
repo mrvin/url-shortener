@@ -2,7 +2,7 @@
 
 Необходимо разработать сервис url-shortener для сокращения URL-адресов по примеру https://tinyurl.com/.
 Приложение должно быть реализовано в виде HTTP сервера, реализующее REST API. Сервер должен реализовывать
-7 методов и их логику:
+8 методов и их логику:
 
 #### Проверка работоспособности
 - Эндпоинт - GET /api/health
@@ -10,7 +10,7 @@
 
 ##### Пример
 ```bash
-$ curl -i -X GET 'http://localhost:8081/api/health'
+$ curl -i -X GET 'http://localhost:8080/api/health'
 
 {
 	"status":"OK"
@@ -27,7 +27,7 @@ $ curl -i -X GET 'http://localhost:8081/api/health'
 
 ##### Пример
 ```bash
-$ curl -i -X POST 'http://localhost:8081/api/users' \
+$ curl -i -X POST 'http://localhost:8080/api/users' \
 -H "Content-Type: application/json" \
 -d '{
 	"username":"Bob",
@@ -50,7 +50,7 @@ $ curl -i -X POST 'http://localhost:8081/api/users' \
 
 ##### Пример
 ```bash
-$ curl -i -X POST 'http://localhost:8081/api/login' \
+$ curl -i -X POST 'http://localhost:8080/api/login' \
 -H "Content-Type: application/json" \
 -d '{
 	"username":"Bob",
@@ -73,7 +73,7 @@ $ curl -i -X POST 'http://localhost:8081/api/login' \
 
 ##### Пример
 ```bash
-$ curl --user Bob:qwerty -i -X POST 'http://localhost:8081/api/data/shorten' \
+$ curl --user Bob:qwerty -i -X POST 'http://localhost:8080/api/data/shorten' \
 -H "Content-Type: application/json" \
 -d '{
 	"url":"https://en.wikipedia.org/wiki/Systems_design",
@@ -93,9 +93,23 @@ $ curl --user Bob:qwerty -i -X POST 'http://localhost:8081/api/data/shorten' \
 
 ##### Пример
 ```bash
-$ curl -i -X GET 'http://localhost:8081/zn9edcu'
+$ curl -i -X GET 'http://localhost:8080/zn9edcu'
 
 <a href="https://en.wikipedia.org/wiki/Systems_design">Found</a>.
+```
+
+#### Проверка доступности алиаса
+- Эндпоинт: GET /api/check/{alias}
+- Статус ответа 200
+
+##### Пример
+```bash
+$ curl -i -X GET 'http://localhost:8080/api/check/zn9edcu'
+
+{
+  "exists": true,
+  "status": "OK"
+}
 ```
 
 #### Удаление сокращенного URL-адреса
@@ -104,7 +118,7 @@ $ curl -i -X GET 'http://localhost:8081/zn9edcu'
 
 ##### Пример
 ```bash
-$ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8081/api/zn9edcu'
+$ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8080/api/zn9edcu'
 
 {
 	"status":"OK"
@@ -122,7 +136,7 @@ $ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8081/api/zn9edcu'
 
 ##### Пример
 ```bash
-$ curl --user Bob:qwerty -i -X GET 'http://localhost:8081/api/urls'
+$ curl --user Bob:qwerty -i -X GET 'http://localhost:8080/api/urls'
 
 {
   "urls": [
@@ -147,13 +161,11 @@ $ make up
 ```
 
 ### Todo list
-- Добавить метод "Проверка учетных данных пользователя".
 - Добавить метод "Проверка доступности алиаса".
 - Вынести encode url в отдельный пакет и добавить модульные тесты.
 - Добавить модульные тесты для всех методов (обработчиков).
 - Добавить интеграционные тесты.
 - url -> urls
-- 8081 -> 8080
 
 ### Полезные ссылки
 - [Пишем REST API сервис на Go - УЛЬТИМАТИВНЫЙ гайд](https://www.youtube.com/watch?v=rCJvW2xgnk0)

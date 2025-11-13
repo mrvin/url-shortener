@@ -52,7 +52,8 @@ func New(conf *Conf, defaultAliasLengthint int, st storage.Storage) *Server {
 	mux.HandleFunc(http.MethodGet+" /api/urls", auth(handlers.NewGetURLs(st), st))
 	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", auth(handlers.NewDeleteURL(st), st))
 
-	//	mux.HandleFunc(http.MethodGet+" /check/{alias...}", handlers.NewCheck(st), st))
+	mux.HandleFunc(http.MethodGet+" /api/check/{alias...}", handlers.NewCheckAlias(st))
+
 	mux.HandleFunc(http.MethodGet+" /{alias...}", handlers.NewRedirect(st))
 
 	loggerServer := logger.Logger{Inner: mux}
