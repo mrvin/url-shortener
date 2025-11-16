@@ -46,7 +46,7 @@ func main() {
 	}()
 
 	// Start server
-	server := httpserver.New(&conf.HTTP, conf.DefaultAliasLength, st)
+	server := httpserver.New(&conf.HTTP, st)
 
 	server.Run(ctx)
 }

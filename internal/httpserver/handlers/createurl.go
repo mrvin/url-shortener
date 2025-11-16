@@ -7,25 +7,21 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"math/rand"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/mrvin/tasks-go/url-shortener/internal/logger"
 	"github.com/mrvin/tasks-go/url-shortener/internal/storage"
 	httpresponse "github.com/mrvin/tasks-go/url-shortener/pkg/http/response"
 )
 
-const defaultAliasLen = 6
-
 type URLCreator interface {
-	CreateURL(ctx context.Context, username, urlToSave, alias string) error
+	CreateURL(ctx context.Context, username, url, alias string) error
 }
 
 type Request struct {
-	URL   string `json:"url"             validate:"required,url"`
-	Alias string `json:"alias,omitempty"`
+	URL   string `json:"url"   validate:"required,url"`
+	Alias string `json:"alias"`
 }
 
 type Response struct {
@@ -33,10 +29,7 @@ type Response struct {
 	Status string `json:"status"`
 }
 
-func NewSaveURL(creator URLCreator, defaultAliasLengthint int) http.HandlerFunc {
-	if defaultAliasLengthint == 0 {
-		defaultAliasLengthint = defaultAliasLen
-	}
+func NewSaveURL(creator URLCreator) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		var request Request
 
@@ -57,13 +50,10 @@ func NewSaveURL(creator URLCreator, defaultAliasLengthint int) http.HandlerFunc 
 			return
 		}
 
-		if strings.HasPrefix(request.Alias, "api/") {
-			err := errors.New("'api/' reserved path")
+		if strings.HasPrefix(request.Alias, "api/") || strings.HasPrefix(request.Alias, "static/") {
+			err := errors.New("'api/' and 'static/' reserved path")
 			slog.ErrorContext(req.Context(), "Save url: "+err.Error())
 			httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
-		}
-		if request.Alias == "" {
-			request.Alias = generateAlias(defaultAliasLengthint)
 		}
 
 		username, err := logger.GetUsernameFromCtx(req.Context())
@@ -115,17 +105,4 @@ func NewSaveURL(creator URLCreator, defaultAliasLengthint int) http.HandlerFunc 
 			slog.String("url", request.URL),
 		)
 	}
-}
-
-func generateAlias(length int) string {
-	rnd := rand.New(rand.NewSource(time.Now().UnixNano())) //nolint:gosec
-
-	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz" + "0123456789")
-
-	alias := make([]rune, length)
-	for i := range alias {
-		alias[i] = chars[rnd.Intn(len(chars))]
-	}
-
-	return string(alias)
 }
