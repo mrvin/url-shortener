@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener - Сокращатель ссылок</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">URL Shortener</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link unauth-only" href="login.html">Войти</a>
+                <a class="nav-link auth-only" href="dashboard.html" style="display: none;">Мои ссылки</a>
+                <a class="nav-link auth-only" href="#" onclick="authManager.logout()" style="display: none;">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="text-center mb-4">Сократите вашу ссылку</h1>
+                
+                <!-- Форма сокращения ссылки -->
+                <div class="card">
+                    <div class="card-body">
+                        <form id="shorten-form">
+                            <div class="mb-3">
+                                <label for="url-input" class="form-label">Длинная ссылка</label>
+                                <input type="url" class="form-control" id="url-input" 
+                                       placeholder="https://example.com/very-long-url" autocomplete="off" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="alias-input" class="form-label">Желаемый алиас (необязательно)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">${API_BASE}/</span>
+                                    <input type="text" class="form-control" id="alias-input" 
+                                            placeholder="my-link" pattern="[a-zA-Z0-9_-]+" autocomplete="off" required>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="generateRandomAlias()">
+                                        🎲 Сгенерировать
+                                    </button>
+                                </div>
+                                <div class="form-text">
+                                    <span id="alias-status"></span>
+                                    Только буквы, цифры, дефисы и подчеркивания
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="shorten-btn">
+                                Сократить ссылку
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Результат -->
+                <div id="result" class="mt-4"></div>
+
+                <!-- Информация для неавторизованных -->
+                <div class="alert alert-info mt-4 unauth-only">
+                    <h5>Как это работает?</h5>
+                    <p>Создавайте короткие ссылки и отслеживайте статистику переходов. 
+                       <a href="login.html">Войдите</a> чтобы управлять своими ссылками.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

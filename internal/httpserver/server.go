@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -40,15 +41,21 @@ type Server struct {
 	conf *Conf
 }
 
-func New(conf *Conf, defaultAliasLengthint int, st storage.Storage) *Server {
+//go:embed static
+var staticFiles embed.FS
+
+func New(conf *Conf, st storage.Storage) *Server {
 	mux := http.NewServeMux()
+
+	fileServer := http.FileServer(http.FS(staticFiles))
+	mux.Handle(http.MethodGet+" /static/", fileServer)
 
 	mux.HandleFunc(http.MethodGet+" /api/health", handlers.Health)
 
 	mux.HandleFunc(http.MethodPost+" /api/users", handlers.NewRegistration(st))
 	mux.HandleFunc(http.MethodPost+" /api/login", handlers.NewLogin(st))
 
-	mux.HandleFunc(http.MethodPost+" /api/data/shorten", auth(handlers.NewSaveURL(st, defaultAliasLengthint), st))
+	mux.HandleFunc(http.MethodPost+" /api/data/shorten", auth(handlers.NewSaveURL(st), st))
 	mux.HandleFunc(http.MethodGet+" /api/urls", auth(handlers.NewGetURLs(st), st))
 	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", auth(handlers.NewDeleteURL(st), st))
 
