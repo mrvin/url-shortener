@@ -59,9 +59,9 @@ class URLShortenerAPI {
         return await response.json();
     }
 
-    // Получение всех ссылок пользователя
-    async getUserUrls() {
-        const response = await fetch(`${this.baseURL}/api/urls`, {
+    // Получение списка URL с пагинацией
+    async getUserUrls(limit = 10, offset = 0) {
+        const response = await fetch(`${this.baseURL}/api/urls?limit=${limit}&offset=${offset}`, {
             headers: this.getAuthHeaders()
         });
         return await response.json();
