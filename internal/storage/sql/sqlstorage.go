@@ -129,10 +129,10 @@ func (s *Storage) DeleteURL(ctx context.Context, username, alias string) error {
 	return nil
 }
 
-func (s *Storage) GetURLs(ctx context.Context, username string) ([]storage.URL, int64, error) {
+func (s *Storage) GetURLs(ctx context.Context, username string, limit, offset uint64) ([]storage.URL, uint64, error) {
 	urls := make([]storage.URL, 0)
 
-	rows, err := s.selectURLs.QueryContext(ctx, username)
+	rows, err := s.selectURLs.QueryContext(ctx, username, limit, offset)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return urls, 0, nil
@@ -158,7 +158,7 @@ func (s *Storage) GetURLs(ctx context.Context, username string) ([]storage.URL, 
 		return nil, 0, fmt.Errorf("rows error: %w", err)
 	}
 
-	var total int64
+	var total uint64
 	if err := s.selectTotalURLs.QueryRowContext(ctx, username).Scan(&total); err != nil {
 		return nil, 0, fmt.Errorf("can't scan total urls: %w", err)
 	}
@@ -277,7 +277,10 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 			count,
 			created_at
 		FROM url
-		WHERE username = $1`
+		WHERE username = $1
+		ORDER BY created_at DESC
+		LIMIT $2
+		OFFSET $3`
 	s.selectURLs, err = s.db.PrepareContext(ctx, sqlSelectURLs)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "select urls", err)

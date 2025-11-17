@@ -6,24 +6,55 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/mrvin/tasks-go/url-shortener/internal/logger"
 	"github.com/mrvin/tasks-go/url-shortener/internal/storage"
 	httpresponse "github.com/mrvin/tasks-go/url-shortener/pkg/http/response"
 )
 
+const (
+	defaultLimit  = 100
+	defaultOffset = 0
+)
+
 type URLsGetter interface {
-	GetURLs(ctx context.Context, username string) ([]storage.URL, int64, error)
+	GetURLs(ctx context.Context, username string, limit, offset uint64) ([]storage.URL, uint64, error)
 }
 
 type ResponseGetURLs struct {
 	URLs   []storage.URL `json:"urls"`
-	Total  int64         `json:"total"`
+	Total  uint64        `json:"total"`
 	Status string        `json:"status"`
 }
 
 func NewGetURLs(getter URLsGetter) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		var err error
+
+		limit := uint64(defaultLimit)
+		limitStr := req.URL.Query().Get("limit")
+		if limitStr != "" {
+			limit, err = strconv.ParseUint(limitStr, 10, 64)
+			if err != nil {
+				err := fmt.Errorf("incorrect limit value: %w", err)
+				slog.Error(err.Error())
+				httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
+				return
+			}
+		}
+		offset := uint64(defaultOffset)
+		offsetStr := req.URL.Query().Get("offset")
+		if offsetStr != "" {
+			offset, err = strconv.ParseUint(offsetStr, 10, 64)
+			if err != nil {
+				err := fmt.Errorf("incorrect offset value: %w", err)
+				slog.Error(err.Error())
+				httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
+				return
+			}
+		}
+
 		username, err := logger.GetUsernameFromCtx(req.Context())
 		if err != nil {
 			err := fmt.Errorf("get user name from ctx: %w", err)
@@ -32,7 +63,7 @@ func NewGetURLs(getter URLsGetter) http.HandlerFunc {
 			return
 		}
 
-		urls, total, err := getter.GetURLs(req.Context(), username)
+		urls, total, err := getter.GetURLs(req.Context(), username, limit, offset)
 		if err != nil {
 			slog.ErrorContext(req.Context(), "Get urls: "+err.Error())
 			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
@@ -63,7 +94,7 @@ func NewGetURLs(getter URLsGetter) http.HandlerFunc {
 		}
 
 		slog.InfoContext(req.Context(), "Get urls",
-			slog.Int64("total", total),
+			slog.Uint64("total", total),
 		)
 	}
 }

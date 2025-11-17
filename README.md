@@ -129,6 +129,9 @@ $ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8080/api/zn9edcu'
 
 #### Получение списка всех сокращенных URL-адресов пользователя
 - Эндпоинт: GET /api/urls
+- Параметры запроса:
+	- limit – количество персон в ответе (по умолчанию 100)
+	- offset - смищение от начала (по умолчанию 0)
 - Ответ должен содержать общее количество сокращенных URL-адресов пользователя (total) и в теле массив JSON-объектов с информацией о сокращенных URL-адресах пользователя. Каждый объект содержит параметры:
 	- url - исходный, полный URL-адрес
 	- alias - сокращенный путь
@@ -138,7 +141,7 @@ $ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8080/api/zn9edcu'
 
 ##### Пример
 ```bash
-$ curl --user Bob:qwerty -i -X GET 'http://localhost:8080/api/urls'
+$ curl --user Bob:qwerty -i -X GET 'http://localhost:8080/api/urls?limit=10&offset=0'
 
 {
   "urls": [
