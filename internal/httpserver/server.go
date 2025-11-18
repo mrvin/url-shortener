@@ -49,6 +49,7 @@ func New(conf *Conf, st storage.Storage) *Server {
 
 	fileServer := http.FileServer(http.FS(staticFiles))
 	mux.Handle(http.MethodGet+" /static/", fileServer)
+	mux.HandleFunc(http.MethodGet+" /favicon.ico", handlers.GetFavicon)
 
 	mux.HandleFunc(http.MethodGet+" /api/health", handlers.Health)
 
