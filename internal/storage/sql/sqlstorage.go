@@ -31,10 +31,9 @@ type Storage struct {
 	insertUser *sql.Stmt
 	selectUser *sql.Stmt
 
-	insertURL    *sql.Stmt
-	selectURLOld *sql.Stmt
-	selectURL    *sql.Stmt
-	deleteURL    *sql.Stmt
+	insertURL *sql.Stmt
+	selectURL *sql.Stmt
+	deleteURL *sql.Stmt
 
 	selectURLs      *sql.Stmt
 	selectTotalURLs *sql.Stmt
@@ -86,8 +85,8 @@ func (s *Storage) GetUser(ctx context.Context, name string) (*storage.User, erro
 	return &user, nil
 }
 
-func (s *Storage) CreateURL(ctx context.Context, username, urlToSave, alias string) error {
-	if _, err := s.insertURL.ExecContext(ctx, urlToSave, alias, username); err != nil {
+func (s *Storage) CreateURL(ctx context.Context, username, url, alias string) error {
+	if _, err := s.insertURL.ExecContext(ctx, url, alias, username); err != nil {
 		var pgErr *pq.Error
 		if errors.As(err, &pgErr) {
 			if pgErr.Code.Name() == "unique_violation" {
@@ -180,7 +179,6 @@ func (s *Storage) Close() error {
 	s.selectUser.Close()
 
 	s.insertURL.Close()
-	s.selectURLOld.Close()
 	s.selectURL.Close()
 	s.deleteURL.Close()
 
@@ -241,30 +239,24 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 
 	// URL query.
 	const sqlInsertURL = `
-		INSERT INTO url(url, alias, username)
+		INSERT INTO urls (url, alias, username)
 			VALUES($1, $2, $3)`
 	s.insertURL, err = s.db.PrepareContext(ctx, sqlInsertURL)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "insert url", err)
 	}
-	const sqlSelectURLOld = `
-		UPDATE 
-			url
+	const sqlSelectURL = `
+		UPDATE urls
 		SET count = count+1 
 		WHERE alias = $1
 		RETURNING url`
 
-	s.selectURLOld, err = s.db.PrepareContext(ctx, sqlSelectURLOld)
+	s.selectURL, err = s.db.PrepareContext(ctx, sqlSelectURL)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "select url", err)
 	}
-	const sqlSelectURL = "SELECT get_url($1)"
-	s.selectURL, err = s.db.PrepareContext(ctx, sqlSelectURL)
-	if err != nil {
-		return fmt.Errorf(fmtStrErr, "select get_url func", err)
-	}
 	const sqlDeleteURL = `
-		DELETE FROM url
+		DELETE FROM urls
 		WHERE username = $1 AND alias = $2`
 	s.deleteURL, err = s.db.PrepareContext(ctx, sqlDeleteURL)
 	if err != nil {
@@ -276,7 +268,7 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 			alias,
 			count,
 			created_at
-		FROM url
+		FROM urls
 		WHERE username = $1
 		ORDER BY created_at DESC
 		LIMIT $2
@@ -286,13 +278,13 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 		return fmt.Errorf(fmtStrErr, "select urls", err)
 	}
 
-	const sqlSelectTotalURLs = `SELECT COUNT(alias) FROM url WHERE username = $1`
+	const sqlSelectTotalURLs = `SELECT COUNT(alias) FROM urls WHERE username = $1`
 	s.selectTotalURLs, err = s.db.PrepareContext(ctx, sqlSelectTotalURLs)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "select total urls", err)
 	}
 
-	const sqlExistsAlias = `SELECT EXISTS ( SELECT 1 FROM url WHERE alias = $1 )`
+	const sqlExistsAlias = `SELECT EXISTS ( SELECT 1 FROM urls WHERE alias = $1 )`
 	s.existsAlias, err = s.db.PrepareContext(ctx, sqlExistsAlias)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "exists alias", err)
