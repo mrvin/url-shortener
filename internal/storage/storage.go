@@ -11,7 +11,7 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 
 	ErrURLNotFound         = errors.New("url not found")
-	ErrURLExists           = errors.New("url exists")
+	ErrAliasExists         = errors.New("alias already exists")
 	ErrURLAliasIsNotExists = errors.New("url alias is not exists")
 )
 

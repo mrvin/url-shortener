@@ -36,6 +36,21 @@ jobs:
     - name: Download go modules
       run: go mod download
 
+    - name: Run Test
+      run: make test
+
+    - name: Coverage Check
+      run: make coverage
+
+    - name: Generate Report
+      run: make report
+
+    - name: Archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: cover.html
+        path: reports/cover.html
+
     - name: Build binary
       run: make build
 

@@ -90,7 +90,7 @@ func (s *Storage) CreateURL(ctx context.Context, username, url, alias string) er
 		var pgErr *pq.Error
 		if errors.As(err, &pgErr) {
 			if pgErr.Code.Name() == "unique_violation" {
-				return storage.ErrURLExists
+				return storage.ErrAliasExists
 			}
 		}
 		return fmt.Errorf("insert url: %w", err)

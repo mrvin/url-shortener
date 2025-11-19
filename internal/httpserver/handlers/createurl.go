@@ -8,8 +8,9 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"strings"
+	"regexp"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/mrvin/tasks-go/url-shortener/internal/logger"
 	"github.com/mrvin/tasks-go/url-shortener/internal/storage"
 	httpresponse "github.com/mrvin/tasks-go/url-shortener/pkg/http/response"
@@ -19,19 +20,29 @@ type URLCreator interface {
 	CreateURL(ctx context.Context, username, url, alias string) error
 }
 
-type Request struct {
+type RequestSaveURL struct {
 	URL   string `json:"url"   validate:"required,url"`
-	Alias string `json:"alias"`
+	Alias string `json:"alias" validate:"required,mybase64"`
 }
 
-type Response struct {
+type ResponseSaveURL struct {
 	Alias  string `json:"alias"`
 	Status string `json:"status"`
 }
 
 func NewSaveURL(creator URLCreator) http.HandlerFunc {
+	validate := validator.New()
+	// Base62 and '_', '-'
+	myBase64Regex := regexp.MustCompile("^[0-9a-zA-Z_-]+$")
+	err := validate.RegisterValidation("mybase64",
+		func(fl validator.FieldLevel) bool {
+			return myBase64Regex.MatchString(fl.Field().String())
+		})
+	if err != nil {
+		panic("Register validation: " + err.Error())
+	}
 	return func(res http.ResponseWriter, req *http.Request) {
-		var request Request
+		var request RequestSaveURL
 
 		// Read json request
 		body, err := io.ReadAll(req.Body)
@@ -50,10 +61,18 @@ func NewSaveURL(creator URLCreator) http.HandlerFunc {
 			return
 		}
 
-		if strings.HasPrefix(request.Alias, "api/") || strings.HasPrefix(request.Alias, "static/") {
-			err := errors.New("'api/' and 'static/' reserved path")
+		// Validation
+		if err := validate.Struct(request); err != nil {
+			var vErrors validator.ValidationErrors
+			if errors.As(err, &vErrors) {
+				err := fmt.Errorf("invalid request: tag: %s value: %s", vErrors[0].Tag(), vErrors[0].Value())
+				slog.ErrorContext(req.Context(), "Save url: "+err.Error())
+				httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
+				return
+			}
 			slog.ErrorContext(req.Context(), "Save url: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
+			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		username, err := logger.GetUsernameFromCtx(req.Context())
@@ -65,9 +84,8 @@ func NewSaveURL(creator URLCreator) http.HandlerFunc {
 		}
 
 		if err := creator.CreateURL(req.Context(), username, request.URL, request.Alias); err != nil {
-			if errors.Is(err, storage.ErrURLExists) {
-				err := fmt.Errorf("alias already exists: %w", err)
-				slog.InfoContext(req.Context(), "Save url: "+err.Error(), slog.String("alias", request.Alias))
+			if errors.Is(err, storage.ErrAliasExists) {
+				slog.ErrorContext(req.Context(), "Save url: "+err.Error(), slog.String("alias", request.Alias))
 				httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
 				return
 			}
@@ -78,7 +96,7 @@ func NewSaveURL(creator URLCreator) http.HandlerFunc {
 		}
 
 		// Write json response
-		response := Response{
+		response := ResponseSaveURL{
 			Alias:  request.Alias,
 			Status: "OK",
 		}
