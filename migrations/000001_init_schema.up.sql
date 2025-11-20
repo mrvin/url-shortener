@@ -1,7 +1,9 @@
+CREATE TYPE role_type AS ENUM ('user', 'admin');
+
 CREATE TABLE IF NOT EXISTS users (
 	name TEXT NOT NULL UNIQUE PRIMARY KEY,
 	hash_password TEXT NOT NULL,
-	role TEXT NOT NULL
+	role role_type NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS urls(

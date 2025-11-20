@@ -23,7 +23,7 @@ func (m *MockURLCreator) CreateURL(_ context.Context, username, url, alias strin
 	return args.Error(0)
 }
 
-func TestTranslateAPI(t *testing.T) {
+func TestCreateURL(t *testing.T) {
 	tests := []struct {
 		Username                 string
 		URL                      string
