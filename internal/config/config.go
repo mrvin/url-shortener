@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/mrvin/tasks-go/url-shortener/internal/httpserver"
-	"github.com/mrvin/tasks-go/url-shortener/internal/logger"
-	sqlstorage "github.com/mrvin/tasks-go/url-shortener/internal/storage/sql"
+	"github.com/mrvin/url-shortener/internal/httpserver"
+	"github.com/mrvin/url-shortener/internal/logger"
+	sqlstorage "github.com/mrvin/url-shortener/internal/storage/sql"
 )
 
 type Config struct {

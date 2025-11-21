@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/mrvin/tasks-go/url-shortener/internal/logger"
+	"github.com/mrvin/url-shortener/internal/logger"
 )
 
 type LoggingResponseWriter struct {

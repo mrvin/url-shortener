@@ -5,10 +5,10 @@ import (
 	stdlog "log"
 	"log/slog"
 
-	"github.com/mrvin/tasks-go/url-shortener/internal/config"
-	"github.com/mrvin/tasks-go/url-shortener/internal/httpserver"
-	"github.com/mrvin/tasks-go/url-shortener/internal/logger"
-	sqlstorage "github.com/mrvin/tasks-go/url-shortener/internal/storage/sql"
+	"github.com/mrvin/url-shortener/internal/config"
+	"github.com/mrvin/url-shortener/internal/httpserver"
+	"github.com/mrvin/url-shortener/internal/logger"
+	sqlstorage "github.com/mrvin/url-shortener/internal/storage/sql"
 )
 
 func main() {

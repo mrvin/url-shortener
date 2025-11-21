@@ -1,4 +1,4 @@
-module github.com/mrvin/tasks-go/url-shortener
+module github.com/mrvin/url-shortener
 
 go 1.24.0
 

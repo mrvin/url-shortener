@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
-	"github.com/mrvin/tasks-go/url-shortener/internal/storage"
+	"github.com/mrvin/url-shortener/internal/storage"
 )
 
 const maxOpenConns = 25

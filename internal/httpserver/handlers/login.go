@@ -8,8 +8,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/mrvin/tasks-go/url-shortener/internal/storage"
-	httpresponse "github.com/mrvin/tasks-go/url-shortener/pkg/http/response"
+	"github.com/mrvin/url-shortener/internal/storage"
+	httpresponse "github.com/mrvin/url-shortener/pkg/http/response"
 	"golang.org/x/crypto/bcrypt"
 )
 

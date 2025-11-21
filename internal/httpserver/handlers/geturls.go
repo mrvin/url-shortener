@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/mrvin/tasks-go/url-shortener/internal/logger"
-	"github.com/mrvin/tasks-go/url-shortener/internal/storage"
-	httpresponse "github.com/mrvin/tasks-go/url-shortener/pkg/http/response"
+	"github.com/mrvin/url-shortener/internal/logger"
+	"github.com/mrvin/url-shortener/internal/storage"
+	httpresponse "github.com/mrvin/url-shortener/pkg/http/response"
 )
 
 const (
@@ -85,7 +85,7 @@ func NewGetURLs(getter URLsGetter) http.HandlerFunc {
 			return
 		}
 
-		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 		if _, err := res.Write(jsonResponse); err != nil {
 			err := fmt.Errorf("write response: %w", err)
 			slog.ErrorContext(req.Context(), "Get urls: "+err.Error())

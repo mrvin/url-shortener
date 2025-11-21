@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	log "github.com/mrvin/tasks-go/url-shortener/internal/logger"
-	"github.com/mrvin/tasks-go/url-shortener/internal/storage"
-	httpresponse "github.com/mrvin/tasks-go/url-shortener/pkg/http/response"
+	log "github.com/mrvin/url-shortener/internal/logger"
+	"github.com/mrvin/url-shortener/internal/storage"
+	httpresponse "github.com/mrvin/url-shortener/pkg/http/response"
 	"github.com/stretchr/testify/mock"
 )
 

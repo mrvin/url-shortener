@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	httpresponse "github.com/mrvin/tasks-go/url-shortener/pkg/http/response"
+	httpresponse "github.com/mrvin/url-shortener/pkg/http/response"
 )
 
 type ResponseCheckAlias struct {
@@ -43,7 +43,7 @@ func NewCheckAlias(checker AliasChecker) http.HandlerFunc {
 			return
 		}
 
-		res.Header().Set("Content-Type", "application/json")
+		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 		if _, err := res.Write(jsonResponse); err != nil {
 			err := fmt.Errorf("write response: %w", err)
 			slog.ErrorContext(req.Context(), "Check alias: "+err.Error())

@@ -11,10 +11,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mrvin/tasks-go/url-shortener/internal/httpserver/handlers"
-	log "github.com/mrvin/tasks-go/url-shortener/internal/logger"
-	"github.com/mrvin/tasks-go/url-shortener/internal/storage"
-	"github.com/mrvin/tasks-go/url-shortener/pkg/http/logger"
+	"github.com/mrvin/url-shortener/internal/httpserver/handlers"
+	log "github.com/mrvin/url-shortener/internal/logger"
+	"github.com/mrvin/url-shortener/internal/storage"
+	"github.com/mrvin/url-shortener/pkg/http/logger"
 	"golang.org/x/crypto/bcrypt"
 )
 
