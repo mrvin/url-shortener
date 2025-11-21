@@ -52,6 +52,7 @@ func New(conf *Conf, st storage.Storage) *Server {
 	mux.HandleFunc(http.MethodGet+" /favicon.ico", handlers.GetFavicon)
 
 	mux.HandleFunc(http.MethodGet+" /api/health", handlers.Health)
+	mux.HandleFunc(http.MethodGet+" /api/info", handlers.Info)
 
 	mux.HandleFunc(http.MethodPost+" /api/users", handlers.NewRegistration(st))
 	mux.HandleFunc(http.MethodPost+" /api/login", handlers.NewLogin(st))

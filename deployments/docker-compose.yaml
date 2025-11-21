@@ -1,8 +1,23 @@
 services:
-    url-shortener:
+    url-shortener-prod:
+        profiles: ['prod']
         build:
          context: ../
          dockerfile: cmd/url-shortener/Dockerfile
+         target: prod
+        ports:
+         - "8080:8080"
+        env_file:
+         - ../configs/url-shortener.env
+        depends_on:
+         - migrate
+
+    url-shortener-dev:
+        profiles: ['dev']
+        build:
+         context: ../
+         dockerfile: cmd/url-shortener/Dockerfile
+         target: dev
         ports:
          - "8080:8080"
         env_file:

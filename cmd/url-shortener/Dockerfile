@@ -1,9 +1,9 @@
 ## Build
-FROM golang:1.25.4-alpine AS build
+FROM golang:1.25.4-alpine AS dev
 
 LABEL maintainer="mrvin v.v.vinogradovv@gmail.com"
 
-RUN apk update && apk add make && apk add tzdata
+RUN apk update && apk add make && apk add tzdata && apk add git
 
 WORKDIR /app
 
@@ -12,6 +12,7 @@ COPY cmd/url-shortener cmd/url-shortener
 COPY internal internal
 COPY pkg pkg
 COPY Makefile ./
+COPY .git .git
 
 # Copy and download dependency using go mod.
 COPY go.mod go.sum ./
@@ -19,15 +20,21 @@ RUN go mod download
 
 RUN make build
 
+ENV TZ=Europe/Moscow
+
+EXPOSE 8080
+
+ENTRYPOINT ["/app/bin/url-shortener"]
+
 ## Deploy
-FROM scratch
+FROM scratch AS prod
 
 LABEL maintainer="mrvin v.v.vinogradovv@gmail.com"
 
 WORKDIR /
 
-COPY --from=build ["/usr/share/zoneinfo", "/usr/share/zoneinfo"]
-COPY --from=build ["/app/bin/url-shortener", "/usr/local/bin/url-shortener"]
+COPY --from=dev ["/usr/share/zoneinfo", "/usr/share/zoneinfo"]
+COPY --from=dev ["/app/bin/url-shortener", "/usr/local/bin/url-shortener"]
 
 ENV TZ=Europe/Moscow
 
