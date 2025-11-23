@@ -84,12 +84,12 @@ func NewSaveURL(creator URLCreator) http.HandlerFunc {
 		}
 
 		if err := creator.CreateURL(req.Context(), username, request.URL, request.Alias); err != nil {
+			err := fmt.Errorf("saving url to storage: %w", err)
 			if errors.Is(err, storage.ErrAliasExists) {
 				slog.ErrorContext(req.Context(), "Save url: "+err.Error(), slog.String("alias", request.Alias))
-				httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
+				httpresponse.WriteError(res, err.Error(), http.StatusConflict)
 				return
 			}
-			err := fmt.Errorf("failed save url: %w", err)
 			slog.ErrorContext(req.Context(), "Save url: "+err.Error(), slog.String("alias", request.Alias))
 			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
 			return

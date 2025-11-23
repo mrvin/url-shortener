@@ -21,7 +21,7 @@ func NewRedirect(getter URLGetter) http.HandlerFunc {
 
 		url, err := getter.GetURL(req.Context(), alias)
 		if err != nil {
-			if errors.Is(err, storage.ErrURLNotFound) {
+			if errors.Is(err, storage.ErrAliasNotFound) {
 				slog.ErrorContext(req.Context(), "Redirect: "+err.Error(), slog.String("alias", alias))
 				httpresponse.WriteError(res, err.Error(), http.StatusNotFound)
 				return

@@ -65,14 +65,14 @@ func TestCreateURL(t *testing.T) {
 			ExpectedErrorDescription: "",
 		},
 		{
-			TestName:                 "Error alias exists",
+			TestName:                 "Error alias already exists",
 			Username:                 "Bob",
 			URL:                      "https://www.google.com/",
 			Alias:                    "g",
-			StatusCode:               http.StatusBadRequest,
+			StatusCode:               http.StatusConflict,
 			Error:                    storage.ErrAliasExists,
 			ExpectedStatus:           "Error",
-			ExpectedErrorDescription: "alias already exists",
+			ExpectedErrorDescription: "saving url to storage: alias already exists",
 		},
 		{
 			TestName:                 "Error invalid url",
@@ -107,32 +107,32 @@ func TestCreateURL(t *testing.T) {
 				t.Fatalf("cant marshal json: %v", err)
 			}
 			ctx := log.WithUsername(context.Background(), test.Username)
-			req, err := http.NewRequestWithContext(ctx, "POST", "/api/data/shorten", bytes.NewReader(dataRequest))
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/api/data/shorten", bytes.NewReader(dataRequest))
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}
 			mockCreator.On("CreateURL", test.Username, test.URL, test.Alias).Return(test.Error)
 			handler.ServeHTTP(res, req)
 			if res.Code != test.StatusCode {
-				t.Errorf(`expected status code %d but received %d`, test.StatusCode, res.Code)
+				t.Errorf("expected status code %d but received %d", test.StatusCode, res.Code)
 			}
 			if test.StatusCode == http.StatusCreated {
 				var response ResponseSaveURL
 				json.Unmarshal(res.Body.Bytes(), &response)
 				if response.Alias != test.Alias {
-					t.Errorf(`expected alias "%s" but received %s`, test.Alias, response.Alias)
+					t.Errorf(`expected alias "%s" but received "%s"`, test.Alias, response.Alias)
 				}
 				if response.Status != test.ExpectedStatus {
-					t.Errorf(`expected status "%s" but received %s`, test.ExpectedStatus, response.Status)
+					t.Errorf(`expected status "%s" but received "%s"`, test.ExpectedStatus, response.Status)
 				}
 			} else {
 				var response httpresponse.RequestError
 				json.Unmarshal(res.Body.Bytes(), &response)
 				if response.Status != test.ExpectedStatus {
-					t.Errorf(`expected status %s but received %s`, test.ExpectedStatus, response.Status)
+					t.Errorf(`expected status "%s" but received "%s"`, test.ExpectedStatus, response.Status)
 				}
 				if response.Error != test.ExpectedErrorDescription {
-					t.Errorf(`expected description %s but received %s`, test.ExpectedErrorDescription, response.Error)
+					t.Errorf(`expected description "%s" but received "%s"`, test.ExpectedErrorDescription, response.Error)
 				}
 			}
 		})

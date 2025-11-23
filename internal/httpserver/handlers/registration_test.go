@@ -68,10 +68,10 @@ func TestCreateUser(t *testing.T) {
 			Username:                 "Alice",
 			Password:                 "qwerty",
 			Role:                     "user",
-			StatusCode:               http.StatusInternalServerError,
+			StatusCode:               http.StatusConflict,
 			Error:                    storage.ErrUserExists,
 			ExpectedStatus:           "Error",
-			ExpectedErrorDescription: "saving user to storage: user exists",
+			ExpectedErrorDescription: "saving user to storage: user already exists",
 		},
 	}
 
@@ -85,29 +85,29 @@ func TestCreateUser(t *testing.T) {
 			if err != nil {
 				t.Fatalf("cant marshal json: %v", err)
 			}
-			req, err := http.NewRequestWithContext(context.Background(), "POST", "/api/users", bytes.NewReader(dataRequest))
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/api/users", bytes.NewReader(dataRequest))
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}
 			mockCreator.On("CreateUser", test.Username, test.Role).Return(test.Error)
 			handler.ServeHTTP(res, req)
 			if res.Code != test.StatusCode {
-				t.Errorf(`expected status code %d but received %d`, test.StatusCode, res.Code)
+				t.Errorf("expected status code %d but received %d", test.StatusCode, res.Code)
 			}
 			if test.StatusCode == http.StatusCreated {
 				var response httpresponse.RequestOK
 				json.Unmarshal(res.Body.Bytes(), &response)
 				if response.Status != test.ExpectedStatus {
-					t.Errorf(`expected status %s but received %s`, test.ExpectedStatus, response.Status)
+					t.Errorf(`expected status "%s" but received "%s"`, test.ExpectedStatus, response.Status)
 				}
 			} else {
 				var response httpresponse.RequestError
 				json.Unmarshal(res.Body.Bytes(), &response)
 				if response.Status != test.ExpectedStatus {
-					t.Errorf(`expected status %s but received %s`, test.ExpectedStatus, response.Status)
+					t.Errorf(`expected status "%s" but received "%s"`, test.ExpectedStatus, response.Status)
 				}
 				if response.Error != test.ExpectedErrorDescription {
-					t.Errorf(`expected description %s but received %s`, test.ExpectedErrorDescription, response.Error)
+					t.Errorf(`expected description "%s" but received "%s"`, test.ExpectedErrorDescription, response.Error)
 				}
 			}
 		})

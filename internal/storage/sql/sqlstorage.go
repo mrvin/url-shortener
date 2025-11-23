@@ -104,7 +104,7 @@ func (s *Storage) GetURL(ctx context.Context, alias string) (string, error) {
 
 	if err := s.selectURL.QueryRowContext(ctx, alias).Scan(&url); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", storage.ErrURLNotFound
+			return "", storage.ErrAliasNotFound
 		}
 		return "", fmt.Errorf("can't scan URL with alias: %s: %w", alias, err)
 	}
@@ -122,7 +122,7 @@ func (s *Storage) DeleteURL(ctx context.Context, username, alias string) error {
 		return fmt.Errorf("delete url: %w", err)
 	}
 	if count != 1 {
-		return storage.ErrURLAliasIsNotExists
+		return storage.ErrAliasNotFound
 	}
 
 	return nil

@@ -7,12 +7,11 @@ import (
 )
 
 var (
-	ErrUserExists   = errors.New("user exists")
+	ErrUserExists   = errors.New("user already exists")
 	ErrUserNotFound = errors.New("user not found")
 
-	ErrURLNotFound         = errors.New("url not found")
-	ErrAliasExists         = errors.New("alias already exists")
-	ErrURLAliasIsNotExists = errors.New("url alias is not exists")
+	ErrAliasExists   = errors.New("alias already exists")
+	ErrAliasNotFound = errors.New("alias not found")
 )
 
 //nolint:tagliatelle
