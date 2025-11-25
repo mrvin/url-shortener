@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/mrvin/url-shortener/internal/logger"
+	"github.com/mrvin/url-shortener/internal/storage"
 	httpresponse "github.com/mrvin/url-shortener/pkg/http/response"
 )
 
@@ -27,8 +29,12 @@ func NewDeleteURL(deleter URLDeleter) http.HandlerFunc {
 		}
 
 		if err := deleter.DeleteURL(req.Context(), username, alias); err != nil {
-			err := fmt.Errorf("failed delete url: %w", err)
-			slog.ErrorContext(req.Context(), "Delete url: "+err.Error())
+			err := fmt.Errorf("deleting url from storage: %w", err)
+			slog.ErrorContext(req.Context(), "Delete url: "+err.Error(), slog.String("alias", alias))
+			if errors.Is(err, storage.ErrAliasNotFound) {
+				httpresponse.WriteError(res, err.Error(), http.StatusNotFound)
+				return
+			}
 			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
 			return
 		}

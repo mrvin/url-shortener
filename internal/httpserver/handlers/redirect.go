@@ -21,12 +21,12 @@ func NewRedirect(getter URLGetter) http.HandlerFunc {
 
 		url, err := getter.GetURL(req.Context(), alias)
 		if err != nil {
+			err = fmt.Errorf("getting url from storage: %w", err)
 			if errors.Is(err, storage.ErrAliasNotFound) {
 				slog.ErrorContext(req.Context(), "Redirect: "+err.Error(), slog.String("alias", alias))
 				httpresponse.WriteError(res, err.Error(), http.StatusNotFound)
 				return
 			}
-			err := fmt.Errorf("failed get url: %w", err)
 			slog.ErrorContext(req.Context(), "Redirect: "+err.Error(), slog.String("alias", alias))
 			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
 			return

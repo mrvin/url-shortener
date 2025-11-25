@@ -74,12 +74,11 @@ func NewRegistration(creator UserCreator) http.HandlerFunc {
 
 		if err = creator.CreateUser(req.Context(), &user); err != nil {
 			err = fmt.Errorf("saving user to storage: %w", err)
+			slog.ErrorContext(req.Context(), "Registration: "+err.Error(), slog.String("username", request.Username))
 			if errors.Is(err, storage.ErrUserExists) {
-				slog.ErrorContext(req.Context(), "Registration: "+err.Error(), slog.String("username", request.Username))
 				httpresponse.WriteError(res, err.Error(), http.StatusConflict)
 				return
 			}
-			slog.ErrorContext(req.Context(), "Registration: "+err.Error())
 			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
 			return
 		}

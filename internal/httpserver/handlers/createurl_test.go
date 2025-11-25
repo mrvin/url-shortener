@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -93,6 +94,16 @@ func TestCreateURL(t *testing.T) {
 			Error:                    nil,
 			ExpectedStatus:           "Error",
 			ExpectedErrorDescription: "invalid request: tag: mybase64 value: api/",
+		},
+		{
+			TestName:                 "Error internal",
+			Username:                 "Bob",
+			URL:                      "https://en.wikipedia.org/wiki/Systems_design",
+			Alias:                    "zn9edcu",
+			StatusCode:               http.StatusInternalServerError,
+			Error:                    errors.New("internal"),
+			ExpectedStatus:           "Error",
+			ExpectedErrorDescription: "saving url to storage: internal",
 		},
 	}
 

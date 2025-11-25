@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -72,6 +73,16 @@ func TestCreateUser(t *testing.T) {
 			Error:                    storage.ErrUserExists,
 			ExpectedStatus:           "Error",
 			ExpectedErrorDescription: "saving user to storage: user already exists",
+		},
+		{
+			TestName:                 "Error internal",
+			Username:                 "Jimmy",
+			Password:                 "qwerty",
+			Role:                     "user",
+			StatusCode:               http.StatusInternalServerError,
+			Error:                    errors.New("internal"),
+			ExpectedStatus:           "Error",
+			ExpectedErrorDescription: "saving user to storage: internal",
 		},
 	}
 
