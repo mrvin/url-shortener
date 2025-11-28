@@ -5,6 +5,7 @@ import (
 	stdlog "log"
 	"log/slog"
 
+	"github.com/mrvin/url-shortener/internal/cache"
 	"github.com/mrvin/url-shortener/internal/config"
 	"github.com/mrvin/url-shortener/internal/httpserver"
 	"github.com/mrvin/url-shortener/internal/logger"
@@ -45,8 +46,23 @@ func main() {
 		}
 	}()
 
+	// init cache
+	c, err := cache.New(ctx, &conf.Cache)
+	if err != nil {
+		slog.Error("Failed to init cache: " + err.Error())
+		return
+	}
+	slog.Info("Connected to cache")
+	defer func() {
+		if err := c.Close(); err != nil {
+			slog.Error("Failed to close cache: " + err.Error())
+		} else {
+			slog.Info("Closing the cache connection")
+		}
+	}()
+
 	// Start server
-	server := httpserver.New(&conf.HTTP, st)
+	server := httpserver.New(&conf.HTTP, st, c)
 
 	server.Run(ctx)
 }

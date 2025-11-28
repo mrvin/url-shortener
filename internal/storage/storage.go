@@ -37,6 +37,7 @@ type UserStorage interface {
 type URLStorage interface {
 	CreateURL(ctx context.Context, username, url, alias string) error
 	GetURL(ctx context.Context, alias string) (string, error)
+	CountIncrement(alias string) error
 	DeleteURL(ctx context.Context, username, alias string) error
 	GetURLs(ctx context.Context, username string, limit, offset uint64) ([]URL, uint64, error)
 	CheckAlias(ctx context.Context, alias string) (bool, error)

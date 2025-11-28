@@ -31,9 +31,10 @@ type Storage struct {
 	insertUser *sql.Stmt
 	selectUser *sql.Stmt
 
-	insertURL *sql.Stmt
-	selectURL *sql.Stmt
-	deleteURL *sql.Stmt
+	insertURL      *sql.Stmt
+	selectURL      *sql.Stmt
+	countIncrement *sql.Stmt
+	deleteURL      *sql.Stmt
 
 	selectURLs      *sql.Stmt
 	selectTotalURLs *sql.Stmt
@@ -112,6 +113,22 @@ func (s *Storage) GetURL(ctx context.Context, alias string) (string, error) {
 	return url, nil
 }
 
+func (s *Storage) CountIncrement(alias string) error {
+	res, err := s.countIncrement.Exec(alias) //nolint:noctx
+	if err != nil {
+		return fmt.Errorf("count increment: %w", err)
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("count increment: %w", err)
+	}
+	if count != 1 {
+		return storage.ErrAliasNotFound
+	}
+
+	return nil
+}
+
 func (s *Storage) DeleteURL(ctx context.Context, username, alias string) error {
 	res, err := s.deleteURL.ExecContext(ctx, username, alias)
 	if err != nil {
@@ -180,6 +197,7 @@ func (s *Storage) Close() error {
 
 	s.insertURL.Close()
 	s.selectURL.Close()
+	s.countIncrement.Close()
 	s.deleteURL.Close()
 
 	s.selectURLs.Close()
@@ -247,13 +265,22 @@ func (s *Storage) prepareQuery(ctx context.Context) error {
 	}
 	const sqlSelectURL = `
 		UPDATE urls
-		SET count = count+1 
+		SET count = count+1
 		WHERE alias = $1
 		RETURNING url`
 
 	s.selectURL, err = s.db.PrepareContext(ctx, sqlSelectURL)
 	if err != nil {
 		return fmt.Errorf(fmtStrErr, "select url", err)
+	}
+	const sqlCountIncrement = `
+		UPDATE urls
+		SET count = count+1
+		WHERE alias = $1
+	`
+	s.countIncrement, err = s.db.PrepareContext(ctx, sqlCountIncrement)
+	if err != nil {
+		return fmt.Errorf(fmtStrErr, "counter increment", err)
 	}
 	const sqlDeleteURL = `
 		DELETE FROM urls

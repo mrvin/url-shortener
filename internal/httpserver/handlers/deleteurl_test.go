@@ -14,12 +14,21 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockURLDeleter struct {
+type MockDBURLDeleter struct {
 	mock.Mock
 }
 
-func (m *MockURLDeleter) DeleteURL(ctx context.Context, username, alias string) error {
+func (m *MockDBURLDeleter) DeleteURL(ctx context.Context, username, alias string) error {
 	args := m.Called(username, alias)
+	return args.Error(0)
+}
+
+type MockCacheURLDeleter struct {
+	mock.Mock
+}
+
+func (m *MockCacheURLDeleter) DeleteURL(ctx context.Context, alias string) error {
+	args := m.Called(alias)
 	return args.Error(0)
 }
 
@@ -61,19 +70,24 @@ func TestDeleteURL(t *testing.T) {
 			ExpectedErrorDescription: "deleting url from storage: internal",
 		},
 	}
-	mockDeleter := new(MockURLDeleter)
+	mockDBURLDeleter := new(MockDBURLDeleter)
+	mockCacheURLDeleter := new(MockCacheURLDeleter)
 	mux := http.NewServeMux()
-	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", NewDeleteURL(mockDeleter))
+	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", NewDeleteURL(mockDBURLDeleter, mockCacheURLDeleter))
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			t.Parallel()
+
 			res := httptest.NewRecorder()
 			ctx := log.WithUsername(context.Background(), test.Username)
 			req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "/api/"+test.Alias, nil)
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}
-			mockDeleter.On("DeleteURL", test.Username, test.Alias).Return(test.Error)
+
+			mockDBURLDeleter.On("DeleteURL", test.Username, test.Alias).Return(test.Error)
+			mockCacheURLDeleter.On("DeleteURL", test.Alias).Return(nil)
+
 			mux.ServeHTTP(res, req)
 			if res.Code != test.StatusCode {
 				t.Errorf("expected status code %d but received %d", test.StatusCode, res.Code)

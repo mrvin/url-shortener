@@ -10,7 +10,12 @@ services:
         env_file:
          - ../configs/url-shortener.env
         depends_on:
-         - migrate
+          redis:
+            condition: service_healthy
+          migrate:
+            condition: service_completed_successfully
+        volumes:
+         - ${HOME}/volumes_docker/url-shortener/log:/var/log/url-shortener/
 
     url-shortener-dev:
         profiles: ['dev']
@@ -23,7 +28,12 @@ services:
         env_file:
          - ../configs/url-shortener.env
         depends_on:
-         - migrate
+          redis:
+            condition: service_healthy
+          migrate:
+            condition: service_completed_successfully
+        volumes:
+         - ${HOME}/volumes_docker/url-shortener/log:/var/log/url-shortener/
 
     migrate:
         image: migrate/migrate:v4.17.1
@@ -44,6 +54,17 @@ services:
          - ../configs/url-shortener.env
         healthcheck:
           test: ["CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}"]
-          interval: 3s
+          interval: 1s
         volumes:
          - ${HOME}/volumes_docker/url-shortener/postgres-data:/var/lib/postgresql/data
+
+    # Create service with Redis.
+    redis:
+        image: redis:8.2-alpine
+        ports:
+         - "6379"
+        healthcheck:
+          test: ["CMD", "redis-cli", "ping"]
+          interval: 1s
+        volumes:
+        - "${HOME}/volumes_docker/url-shortener/data:/data/"

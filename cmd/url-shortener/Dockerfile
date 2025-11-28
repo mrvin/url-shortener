@@ -20,6 +20,8 @@ RUN go mod download
 
 RUN make build
 
+RUN mkdir /var/log/url-shortener/
+
 ENV TZ=Europe/Moscow
 
 EXPOSE 8080
@@ -33,6 +35,7 @@ LABEL maintainer="mrvin v.v.vinogradovv@gmail.com"
 
 WORKDIR /
 
+COPY --from=dev ["/var/log/url-shortener/", "/var/log/url-shortener/"]
 COPY --from=dev ["/usr/share/zoneinfo", "/usr/share/zoneinfo"]
 COPY --from=dev ["/app/bin/url-shortener", "/usr/local/bin/url-shortener"]
 

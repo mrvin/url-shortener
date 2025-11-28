@@ -5,12 +5,14 @@ import (
 	"embed"
 	"errors"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/mrvin/url-shortener/internal/cache"
 	"github.com/mrvin/url-shortener/internal/httpserver/handlers"
 	log "github.com/mrvin/url-shortener/internal/logger"
 	"github.com/mrvin/url-shortener/internal/storage"
@@ -30,7 +32,8 @@ type ConfHTTPS struct {
 
 //nolint:tagliatelle
 type Conf struct {
-	Addr    string    `yaml:"addr"`
+	Host    string    `yaml:"host"`
+	Port    string    `yaml:"port"`
 	IsHTTPS bool      `yaml:"is_https"`
 	HTTPS   ConfHTTPS `yaml:"https"`
 }
@@ -44,7 +47,7 @@ type Server struct {
 //go:embed static
 var staticFiles embed.FS
 
-func New(conf *Conf, st storage.Storage) *Server {
+func New(conf *Conf, st storage.Storage, c cache.Cacher) *Server {
 	mux := http.NewServeMux()
 
 	fileServer := http.FileServer(http.FS(staticFiles))
@@ -59,18 +62,18 @@ func New(conf *Conf, st storage.Storage) *Server {
 
 	mux.HandleFunc(http.MethodPost+" /api/data/shorten", auth(handlers.NewSaveURL(st), st))
 	mux.HandleFunc(http.MethodGet+" /api/urls", auth(handlers.NewGetURLs(st), st))
-	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", auth(handlers.NewDeleteURL(st), st))
+	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", auth(handlers.NewDeleteURL(st, c), st))
 
 	mux.HandleFunc(http.MethodGet+" /api/check/{alias...}", handlers.NewCheckAlias(st))
 
-	mux.HandleFunc(http.MethodGet+" /{alias...}", handlers.NewRedirect(st))
+	mux.HandleFunc(http.MethodGet+" /{alias...}", handlers.NewRedirect(st, c))
 
 	loggerServer := logger.Logger{Inner: mux}
 
 	return &Server{
 		//nolint:exhaustruct
 		http.Server{
-			Addr:         conf.Addr,
+			Addr:         net.JoinHostPort(conf.Host, conf.Port),
 			Handler:      &loggerServer,
 			ReadTimeout:  readTimeout * time.Second,
 			WriteTimeout: writeTimeout * time.Second,
