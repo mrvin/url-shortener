@@ -65,6 +65,7 @@ func NewGetURLs(getter URLsGetter) http.HandlerFunc {
 
 		urls, total, err := getter.GetURLs(req.Context(), username, limit, offset)
 		if err != nil {
+			err = fmt.Errorf("getting urls from storage: %w", err)
 			slog.ErrorContext(req.Context(), "Get urls: "+err.Error())
 			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
 			return

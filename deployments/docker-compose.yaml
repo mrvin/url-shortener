@@ -3,7 +3,7 @@ services:
         profiles: ['prod']
         build:
          context: ../
-         dockerfile: cmd/url-shortener/Dockerfile
+         dockerfile: Dockerfile
          target: prod
         ports:
          - "8080:8080"
@@ -21,7 +21,7 @@ services:
         profiles: ['dev']
         build:
          context: ../
-         dockerfile: cmd/url-shortener/Dockerfile
+         dockerfile: Dockerfile
          target: dev
         ports:
          - "8080:8080"

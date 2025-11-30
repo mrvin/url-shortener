@@ -91,6 +91,7 @@ func TestCreateUser(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			t.Parallel()
+
 			res := httptest.NewRecorder()
 			dataRequest, err := json.Marshal(RequestRegistration{Username: test.Username, Password: test.Password})
 			if err != nil {
@@ -100,8 +101,11 @@ func TestCreateUser(t *testing.T) {
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}
+
 			mockCreator.On("CreateUser", test.Username, test.Role).Return(test.Error)
+
 			handler.ServeHTTP(res, req)
+
 			if res.Code != test.StatusCode {
 				t.Errorf("expected status code %d but received %d", test.StatusCode, res.Code)
 			}

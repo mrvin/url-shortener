@@ -51,6 +51,7 @@ func TestRedirect(t *testing.T) {
 
 	t.Run("Success smoke test and cache miss", func(t *testing.T) {
 		t.Parallel()
+
 		alias := "yc"
 		url := "https://yandex.cloud/ru"
 
@@ -79,6 +80,7 @@ func TestRedirect(t *testing.T) {
 
 	t.Run("Success smoke test and cache hit", func(t *testing.T) {
 		t.Parallel()
+
 		alias := "zn9edcu"
 		url := "https://en.wikipedia.org/wiki/Systems_design"
 
@@ -105,6 +107,7 @@ func TestRedirect(t *testing.T) {
 
 	t.Run("Error alias not found", func(t *testing.T) {
 		t.Parallel()
+
 		alias := "7OeLY0"
 
 		res := httptest.NewRecorder()
@@ -137,6 +140,7 @@ func TestRedirect(t *testing.T) {
 
 	t.Run("Error internal", func(t *testing.T) {
 		t.Parallel()
+
 		alias := "Q41Tqc"
 
 		res := httptest.NewRecorder()

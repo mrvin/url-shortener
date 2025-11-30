@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
+	"time"
 
 	log "github.com/mrvin/url-shortener/internal/logger"
 	"github.com/mrvin/url-shortener/internal/storage"
@@ -14,88 +17,90 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type MockDBURLDeleter struct {
+type MockURLsGetter struct {
 	mock.Mock
 }
 
-func (m *MockDBURLDeleter) DeleteURL(_ context.Context, username, alias string) error {
-	args := m.Called(username, alias)
-	return args.Error(0)
+func (m *MockURLsGetter) GetURLs(_ context.Context, username string, limit, offset uint64) ([]storage.URL, uint64, error) {
+	args := m.Called(username, limit, offset)
+	return args.Get(0).([]storage.URL), args.Get(1).(uint64), args.Error(2)
 }
 
-type MockCacheURLDeleter struct {
-	mock.Mock
-}
-
-func (m *MockCacheURLDeleter) DeleteURL(_ context.Context, alias string) error {
-	args := m.Called(alias)
-	return args.Error(0)
-}
-
-func TestDeleteURL(t *testing.T) {
+func TestGetURLs(t *testing.T) {
 	tests := []struct {
 		TestName                 string
 		Username                 string
-		Alias                    string
+		Limit                    uint64
+		Offset                   uint64
 		StatusCode               int
+		URLs                     []storage.URL
+		Total                    uint64
 		Error                    error
 		ExpectedStatus           string
 		ExpectedErrorDescription string
 	}{
 		{
-			TestName:                 "Success smoke test",
-			Username:                 "Bob",
-			Alias:                    "zn9edcu",
-			StatusCode:               http.StatusOK,
+			TestName:   "Success smoke test",
+			Username:   "Bob",
+			Limit:      10,
+			Offset:     1,
+			StatusCode: http.StatusOK,
+			URLs: []storage.URL{
+				{
+					URL:       "https://en.wikipedia.org/wiki/Systems_design",
+					Alias:     "zn9edcu",
+					Count:     24812,
+					CreatedAt: time.Date(2025, time.November, 29, 10, 0, 0, 0, time.UTC),
+				},
+			},
+			Total:                    2,
 			Error:                    nil,
 			ExpectedStatus:           "OK",
 			ExpectedErrorDescription: "",
 		},
 		{
-			TestName:                 "Error alias not found",
-			Username:                 "Alice",
-			Alias:                    "systems_design",
-			StatusCode:               http.StatusNotFound,
-			Error:                    storage.ErrAliasNotFound,
-			ExpectedStatus:           "Error",
-			ExpectedErrorDescription: "deleting url from storage: alias not found",
-		},
-		{
 			TestName:                 "Error internal",
 			Username:                 "Alice",
-			Alias:                    "yc",
+			Limit:                    10,
+			Offset:                   0,
 			StatusCode:               http.StatusInternalServerError,
+			URLs:                     nil,
+			Total:                    0,
 			Error:                    errors.New("internal"),
 			ExpectedStatus:           "Error",
-			ExpectedErrorDescription: "deleting url from storage: internal",
+			ExpectedErrorDescription: "getting urls from storage: internal",
 		},
 	}
-	mockDBURLDeleter := new(MockDBURLDeleter)
-	mockCacheURLDeleter := new(MockCacheURLDeleter)
-	mux := http.NewServeMux()
-	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", NewDeleteURL(mockDBURLDeleter, mockCacheURLDeleter))
+	mockURLsGetter := new(MockURLsGetter)
+	handler := NewGetURLs(mockURLsGetter)
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			t.Parallel()
 
 			res := httptest.NewRecorder()
 			ctx := log.WithUsername(context.Background(), test.Username)
-			req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "/api/"+test.Alias, nil)
+			url := fmt.Sprintf("/api/urls?limit=%d&offset=%d", test.Limit, test.Offset)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}
 
-			mockDBURLDeleter.On("DeleteURL", test.Username, test.Alias).Return(test.Error)
-			mockCacheURLDeleter.On("DeleteURL", test.Alias).Return(nil)
+			mockURLsGetter.On("GetURLs", test.Username, test.Limit, test.Offset).Return(test.URLs, test.Total, test.Error)
 
-			mux.ServeHTTP(res, req)
+			handler.ServeHTTP(res, req)
 
 			if res.Code != test.StatusCode {
 				t.Errorf("expected status code %d but received %d", test.StatusCode, res.Code)
 			}
-			if test.StatusCode == http.StatusOK {
-				var response httpresponse.RequestOK
+			if res.Code == http.StatusOK {
+				var response ResponseGetURLs
 				json.Unmarshal(res.Body.Bytes(), &response)
+				if !slices.Equal(response.URLs, test.URLs) {
+					t.Errorf("expected urls %v but received %v", test.URLs, response.URLs)
+				}
+				if response.Total != test.Total {
+					t.Errorf("expected total %d but received %d", test.Total, response.Total)
+				}
 				if response.Status != test.ExpectedStatus {
 					t.Errorf(`expected status "%s" but received "%s"`, test.ExpectedStatus, response.Status)
 				}

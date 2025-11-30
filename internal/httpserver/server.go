@@ -90,19 +90,17 @@ func (s *Server) Run(ctx context.Context) {
 		syscall.SIGTERM, // systemd
 		syscall.SIGQUIT,
 	)
-	defer cancel()
 
 	go func() {
+		defer cancel()
 		if s.conf.IsHTTPS {
 			if err := s.ListenAndServeTLS(s.conf.HTTPS.CertFile, s.conf.HTTPS.KeyFile); !errors.Is(err, http.ErrServerClosed) {
 				slog.Error("Failed to start https server: " + err.Error())
-				defer cancel()
 				return
 			}
 		} else {
 			if err := s.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 				slog.Error("Failed to start http server: " + err.Error())
-				defer cancel()
 				return
 			}
 		}

@@ -25,7 +25,7 @@ type User struct {
 type URL struct {
 	URL       string    `json:"url"`
 	Alias     string    `json:"alias"`
-	Count     string    `json:"count"`
+	Count     uint64    `json:"count"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
