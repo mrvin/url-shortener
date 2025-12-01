@@ -71,8 +71,9 @@ func TestGetURLs(t *testing.T) {
 			ExpectedErrorDescription: "getting urls from storage: internal",
 		},
 	}
+
 	mockURLsGetter := new(MockURLsGetter)
-	handler := NewGetURLs(mockURLsGetter)
+	handler := ErrorHandler("Get urls", NewGetURLs(mockURLsGetter))
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			t.Parallel()

@@ -4,13 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strconv"
 
 	"github.com/mrvin/url-shortener/internal/logger"
 	"github.com/mrvin/url-shortener/internal/storage"
-	httpresponse "github.com/mrvin/url-shortener/pkg/http/response"
 )
 
 const (
@@ -28,19 +26,17 @@ type ResponseGetURLs struct {
 	Status string        `json:"status"`
 }
 
-func NewGetURLs(getter URLsGetter) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
+func NewGetURLs(getter URLsGetter) HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) (context.Context, int, error) {
 		var err error
+		ctx := req.Context()
 
 		limit := uint64(defaultLimit)
 		limitStr := req.URL.Query().Get("limit")
 		if limitStr != "" {
 			limit, err = strconv.ParseUint(limitStr, 10, 64)
 			if err != nil {
-				err := fmt.Errorf("incorrect limit value: %w", err)
-				slog.Error(err.Error())
-				httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
-				return
+				return ctx, http.StatusBadRequest, fmt.Errorf("incorrect limit value: %w", err)
 			}
 		}
 		offset := uint64(defaultOffset)
@@ -48,27 +44,18 @@ func NewGetURLs(getter URLsGetter) http.HandlerFunc {
 		if offsetStr != "" {
 			offset, err = strconv.ParseUint(offsetStr, 10, 64)
 			if err != nil {
-				err := fmt.Errorf("incorrect offset value: %w", err)
-				slog.Error(err.Error())
-				httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
-				return
+				return ctx, http.StatusBadRequest, fmt.Errorf("incorrect offset value: %w", err)
 			}
 		}
 
-		username, err := logger.GetUsernameFromCtx(req.Context())
+		username, err := logger.GetUsernameFromCtx(ctx)
 		if err != nil {
-			err := fmt.Errorf("get user name from ctx: %w", err)
-			slog.ErrorContext(req.Context(), "Get urls: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, fmt.Errorf("get user name from ctx: %w", err)
 		}
 
-		urls, total, err := getter.GetURLs(req.Context(), username, limit, offset)
+		urls, total, err := getter.GetURLs(ctx, username, limit, offset)
 		if err != nil {
-			err = fmt.Errorf("getting urls from storage: %w", err)
-			slog.ErrorContext(req.Context(), "Get urls: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, fmt.Errorf("getting urls from storage: %w", err)
 		}
 
 		// Write json response
@@ -80,22 +67,14 @@ func NewGetURLs(getter URLsGetter) http.HandlerFunc {
 
 		jsonResponse, err := json.Marshal(&response)
 		if err != nil {
-			err := fmt.Errorf("marshal response: %w", err)
-			slog.ErrorContext(req.Context(), "Get urls: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, fmt.Errorf("marshal response: %w", err)
 		}
 
 		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 		if _, err := res.Write(jsonResponse); err != nil {
-			err := fmt.Errorf("write response: %w", err)
-			slog.ErrorContext(req.Context(), "Get urls: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, fmt.Errorf("write response: %w", err)
 		}
 
-		slog.InfoContext(req.Context(), "Get urls",
-			slog.Uint64("total", total),
-		)
+		return ctx, http.StatusOK, nil
 	}
 }

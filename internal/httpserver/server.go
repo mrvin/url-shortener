@@ -55,18 +55,18 @@ func New(conf *Conf, st storage.Storage, c cache.Cacher) *Server {
 	mux.HandleFunc(http.MethodGet+" /favicon.ico", handlers.GetFavicon)
 
 	mux.HandleFunc(http.MethodGet+" /api/health", handlers.Health)
-	mux.HandleFunc(http.MethodGet+" /api/info", handlers.Info)
+	mux.HandleFunc(http.MethodGet+" /api/info", handlers.ErrorHandler("Info", handlers.Info))
 
-	mux.HandleFunc(http.MethodPost+" /api/users", handlers.NewRegistration(st))
-	mux.HandleFunc(http.MethodPost+" /api/login", handlers.NewLogin(st))
+	mux.HandleFunc(http.MethodPost+" /api/users", handlers.ErrorHandler("Registration user", handlers.NewRegistration(st)))
+	mux.HandleFunc(http.MethodPost+" /api/login", handlers.ErrorHandler("Login user", handlers.NewLogin(st)))
 
-	mux.HandleFunc(http.MethodPost+" /api/data/shorten", auth(handlers.NewSaveURL(st), st))
-	mux.HandleFunc(http.MethodGet+" /api/urls", auth(handlers.NewGetURLs(st), st))
-	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", auth(handlers.NewDeleteURL(st, c), st))
+	mux.HandleFunc(http.MethodPost+" /api/data/shorten", auth(handlers.ErrorHandler("Save url", handlers.NewSaveURL(st)), st))
+	mux.HandleFunc(http.MethodGet+" /api/urls", auth(handlers.ErrorHandler("Get urls", handlers.NewGetURLs(st)), st))
+	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", auth(handlers.ErrorHandler("Delete url", handlers.NewDeleteURL(st, c)), st))
 
-	mux.HandleFunc(http.MethodGet+" /api/check/{alias...}", handlers.NewCheckAlias(st))
+	mux.HandleFunc(http.MethodGet+" /api/check/{alias...}", handlers.ErrorHandler("Check alias", handlers.NewCheckAlias(st)))
 
-	mux.HandleFunc(http.MethodGet+" /{alias...}", handlers.NewRedirect(st, c))
+	mux.HandleFunc(http.MethodGet+" /{alias...}", handlers.ErrorHandler("Redirect", handlers.NewRedirect(st, c)))
 
 	loggerServer := logger.Logger{Inner: mux}
 

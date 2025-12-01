@@ -47,7 +47,7 @@ func TestRedirect(t *testing.T) {
 	mockDBURLGetter := new(MockDBURLGetter)
 	mockCacheURLGetter := new(MockCacheURLGetter)
 	mux := http.NewServeMux()
-	mux.HandleFunc(http.MethodGet+" /{alias...}", NewRedirect(mockDBURLGetter, mockCacheURLGetter))
+	mux.HandleFunc(http.MethodGet+" /{alias...}", ErrorHandler("Redirect", NewRedirect(mockDBURLGetter, mockCacheURLGetter)))
 
 	t.Run("Success smoke test and cache miss", func(t *testing.T) {
 		t.Parallel()

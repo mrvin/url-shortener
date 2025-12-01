@@ -87,7 +87,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	mockCreator := new(MockUserCreator)
-	handler := NewRegistration(mockCreator)
+	handler := ErrorHandler("Registration user", NewRegistration(mockCreator))
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			t.Parallel()

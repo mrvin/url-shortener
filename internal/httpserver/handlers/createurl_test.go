@@ -108,10 +108,11 @@ func TestCreateURL(t *testing.T) {
 	}
 
 	mockCreator := new(MockURLCreator)
-	handler := NewSaveURL(mockCreator)
+	handler := ErrorHandler("Save url", NewSaveURL(mockCreator))
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			t.Parallel()
+
 			res := httptest.NewRecorder()
 			dataRequest, err := json.Marshal(RequestSaveURL{URL: test.URL, Alias: test.Alias})
 			if err != nil {
@@ -122,8 +123,11 @@ func TestCreateURL(t *testing.T) {
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}
+
 			mockCreator.On("CreateURL", test.Username, test.URL, test.Alias).Return(test.Error)
+
 			handler.ServeHTTP(res, req)
+
 			if res.Code != test.StatusCode {
 				t.Errorf("expected status code %d but received %d", test.StatusCode, res.Code)
 			}

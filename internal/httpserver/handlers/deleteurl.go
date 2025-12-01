@@ -20,36 +20,31 @@ type CacheURLDeleter interface {
 	DeleteURL(ctx context.Context, alias string) error
 }
 
-func NewDeleteURL(st DBURLDeleter, cache CacheURLDeleter) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
+func NewDeleteURL(st DBURLDeleter, cache CacheURLDeleter) HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) (context.Context, int, error) {
 		alias := req.PathValue("alias")
 		ctx := logger.WithAlias(req.Context(), alias)
+		msg := "Delete url"
 
 		username, err := logger.GetUsernameFromCtx(ctx)
 		if err != nil {
-			err := fmt.Errorf("get user name from ctx: %w", err)
-			slog.ErrorContext(ctx, "Delete url: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, fmt.Errorf("get user name from ctx: %w", err)
 		}
-		ctx = logger.WithUsername(ctx, username)
 
 		if err := st.DeleteURL(ctx, username, alias); err != nil {
-			err := fmt.Errorf("deleting url from storage: %w", err)
-			slog.ErrorContext(ctx, "Delete url: "+err.Error())
+			err = fmt.Errorf("deleting url from storage: %w", err)
 			if errors.Is(err, storage.ErrAliasNotFound) {
-				httpresponse.WriteError(res, err.Error(), http.StatusNotFound)
-				return
+				return ctx, http.StatusNotFound, err
 			}
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, err
 		}
 		if err := cache.DeleteURL(ctx, alias); err != nil {
-			slog.WarnContext(ctx, "Delete url: deleting url from cache: "+err.Error())
+			err = fmt.Errorf("deleting url from cache: %w", err)
+			slog.WarnContext(ctx, msg, slog.String("warn", err.Error()))
 		}
 
 		httpresponse.WriteOK(res, http.StatusOK)
 
-		slog.DebugContext(ctx, "Deleted url")
+		return ctx, http.StatusOK, nil
 	}
 }

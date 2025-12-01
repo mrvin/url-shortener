@@ -70,10 +70,11 @@ func TestDeleteURL(t *testing.T) {
 			ExpectedErrorDescription: "deleting url from storage: internal",
 		},
 	}
+
 	mockDBURLDeleter := new(MockDBURLDeleter)
 	mockCacheURLDeleter := new(MockCacheURLDeleter)
 	mux := http.NewServeMux()
-	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", NewDeleteURL(mockDBURLDeleter, mockCacheURLDeleter))
+	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", ErrorHandler("Delete url", NewDeleteURL(mockDBURLDeleter, mockCacheURLDeleter)))
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			t.Parallel()

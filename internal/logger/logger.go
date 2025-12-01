@@ -15,6 +15,7 @@ const (
 	contextKeyRequestID contextKey = iota
 	contextKeyUsername
 	contextKeyAlias
+	contextKeyURL
 )
 
 const logFileMode = 0755
@@ -78,6 +79,10 @@ func WithAlias(ctx context.Context, alias string) context.Context {
 	return context.WithValue(ctx, contextKeyAlias, alias)
 }
 
+func WithURL(ctx context.Context, url string) context.Context {
+	return context.WithValue(ctx, contextKeyURL, url)
+}
+
 func GetUsernameFromCtx(ctx context.Context) (string, error) {
 	if ctx == nil {
 		return "", errors.New("ctx is nil")
@@ -99,6 +104,9 @@ func (h ContextHandler) Handle(ctx context.Context, r slog.Record) error {
 	}
 	if alias, ok := ctx.Value(contextKeyAlias).(string); ok {
 		r.Add("alias", alias)
+	}
+	if url, ok := ctx.Value(contextKeyURL).(string); ok {
+		r.Add("url", url)
 	}
 
 	return h.Handler.Handle(ctx, r) //nolint:wrapcheck

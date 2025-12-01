@@ -9,7 +9,6 @@ import (
 
 	"github.com/mrvin/url-shortener/internal/logger"
 	"github.com/mrvin/url-shortener/internal/storage"
-	httpresponse "github.com/mrvin/url-shortener/pkg/http/response"
 )
 
 type DBURLGetter interface {
@@ -22,35 +21,35 @@ type CacheURLGetter interface {
 	SetURL(ctx context.Context, url, alias string) error
 }
 
-func NewRedirect(st DBURLGetter, cache CacheURLGetter) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
+func NewRedirect(st DBURLGetter, cache CacheURLGetter) HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) (context.Context, int, error) {
 		alias := req.PathValue("alias")
 		ctx := logger.WithAlias(req.Context(), alias)
+		msg := "Redirect"
 
 		url, err := cache.GetURL(ctx, alias)
 		if err != nil {
-			slog.WarnContext(ctx, "Redirect: getting url from cache: "+err.Error())
+			err = fmt.Errorf("getting url from cache: %w", err)
+			slog.WarnContext(ctx, msg, slog.String("warn", err.Error()))
 		}
 		if url == "" {
 			url, err = st.GetURL(ctx, alias)
 			if err != nil {
 				err = fmt.Errorf("getting url from storage: %w", err)
 				if errors.Is(err, storage.ErrAliasNotFound) {
-					slog.ErrorContext(ctx, "Redirect: "+err.Error())
-					httpresponse.WriteError(res, err.Error(), http.StatusNotFound)
-					return
+					return ctx, http.StatusNotFound, err
 				}
-				slog.ErrorContext(ctx, "Redirect: "+err.Error())
-				httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-				return
+				return ctx, http.StatusInternalServerError, err
 			}
+			ctx = logger.WithURL(ctx, url)
 			if err := cache.SetURL(ctx, url, alias); err != nil {
-				slog.WarnContext(ctx, "Redirect: "+err.Error())
+				slog.WarnContext(ctx, msg, slog.String("warn", err.Error()))
 			}
 		} else {
+			ctx = logger.WithURL(ctx, url)
 			go func() {
 				if err := st.CountIncrement(alias); err != nil {
-					slog.WarnContext(ctx, "Redirect: "+err.Error())
+					slog.WarnContext(ctx, msg, slog.String("warn", err.Error()))
 				}
 			}()
 		}
@@ -58,8 +57,6 @@ func NewRedirect(st DBURLGetter, cache CacheURLGetter) http.HandlerFunc {
 		// redirect to found url
 		http.Redirect(res, req, url, http.StatusFound)
 
-		slog.DebugContext(ctx, "Redirect",
-			slog.String("url", url),
-		)
+		return ctx, http.StatusFound, nil
 	}
 }

@@ -6,14 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"regexp"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/mrvin/url-shortener/internal/logger"
 	"github.com/mrvin/url-shortener/internal/storage"
-	httpresponse "github.com/mrvin/url-shortener/pkg/http/response"
 )
 
 type URLCreator interface {
@@ -30,7 +28,7 @@ type ResponseSaveURL struct {
 	Status string `json:"status"`
 }
 
-func NewSaveURL(creator URLCreator) http.HandlerFunc {
+func NewSaveURL(creator URLCreator) HandlerFunc {
 	validate := validator.New()
 	// Base62 and '_', '-'
 	myBase64Regex := regexp.MustCompile("^[0-9a-zA-Z_-]+$")
@@ -39,59 +37,44 @@ func NewSaveURL(creator URLCreator) http.HandlerFunc {
 			return myBase64Regex.MatchString(fl.Field().String())
 		})
 	if err != nil {
-		panic("Register validation: " + err.Error())
+		panic(fmt.Errorf("register validation: %w", err))
 	}
-	return func(res http.ResponseWriter, req *http.Request) {
-		var request RequestSaveURL
+	return func(res http.ResponseWriter, req *http.Request) (context.Context, int, error) {
+		ctx := req.Context()
 
 		// Read json request
+		var request RequestSaveURL
 		body, err := io.ReadAll(req.Body)
 		defer req.Body.Close()
 		if err != nil {
-			err := fmt.Errorf("read body request: %w", err)
-			slog.ErrorContext(req.Context(), "Save url: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
-			return
+			return ctx, http.StatusBadRequest, fmt.Errorf("read body request: %w", err)
 		}
-
 		if err := json.Unmarshal(body, &request); err != nil {
-			err := fmt.Errorf("unmarshal body request: %w", err)
-			slog.ErrorContext(req.Context(), "Save url: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
-			return
+			return ctx, http.StatusBadRequest, fmt.Errorf("unmarshal body request: %w", err)
 		}
+		ctx = logger.WithAlias(ctx, request.Alias)
+		ctx = logger.WithURL(ctx, request.URL)
 
 		// Validation
 		if err := validate.Struct(request); err != nil {
 			var vErrors validator.ValidationErrors
 			if errors.As(err, &vErrors) {
-				err := fmt.Errorf("invalid request: tag: %s value: %s", vErrors[0].Tag(), vErrors[0].Value())
-				slog.ErrorContext(req.Context(), "Save url: "+err.Error())
-				httpresponse.WriteError(res, err.Error(), http.StatusBadRequest)
-				return
+				return ctx, http.StatusBadRequest, fmt.Errorf("invalid request: tag: %s value: %s", vErrors[0].Tag(), vErrors[0].Value())
 			}
-			slog.ErrorContext(req.Context(), "Save url: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, fmt.Errorf("validation: %w", err)
 		}
 
-		username, err := logger.GetUsernameFromCtx(req.Context())
+		username, err := logger.GetUsernameFromCtx(ctx)
 		if err != nil {
-			err := fmt.Errorf("get user name from ctx: %w", err)
-			slog.ErrorContext(req.Context(), "Save url: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, fmt.Errorf("get user name from ctx: %w", err)
 		}
 
-		if err := creator.CreateURL(req.Context(), username, request.URL, request.Alias); err != nil {
+		if err := creator.CreateURL(ctx, username, request.URL, request.Alias); err != nil {
 			err := fmt.Errorf("saving url to storage: %w", err)
-			slog.ErrorContext(req.Context(), "Save url: "+err.Error(), slog.String("alias", request.Alias))
 			if errors.Is(err, storage.ErrAliasExists) {
-				httpresponse.WriteError(res, err.Error(), http.StatusConflict)
-				return
+				return ctx, http.StatusConflict, err
 			}
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, err
 		}
 
 		// Write json response
@@ -99,27 +82,16 @@ func NewSaveURL(creator URLCreator) http.HandlerFunc {
 			Alias:  request.Alias,
 			Status: "OK",
 		}
-
 		jsonResponse, err := json.Marshal(&response)
 		if err != nil {
-			err := fmt.Errorf("marshal response: %w", err)
-			slog.ErrorContext(req.Context(), "Save url: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, fmt.Errorf("marshal response: %w", err)
 		}
-
 		res.Header().Set("Content-Type", "application/json; charset=utf-8")
 		res.WriteHeader(http.StatusCreated)
 		if _, err := res.Write(jsonResponse); err != nil {
-			err := fmt.Errorf("write response: %w", err)
-			slog.ErrorContext(req.Context(), "Save url: "+err.Error())
-			httpresponse.WriteError(res, err.Error(), http.StatusInternalServerError)
-			return
+			return ctx, http.StatusInternalServerError, fmt.Errorf("write response: %w", err)
 		}
 
-		slog.InfoContext(req.Context(), "Create new url",
-			slog.String("alias", request.Alias),
-			slog.String("url", request.URL),
-		)
+		return ctx, http.StatusCreated, nil
 	}
 }
