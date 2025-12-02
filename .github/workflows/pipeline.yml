@@ -84,28 +84,12 @@ jobs:
         writeToFile: false
 
     - name: Create release
-      id: create_release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v2.5.0
+      with:
+        body: ${{ steps.changelog.outputs.changes }}
+        files: ./url-shortener
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        body: |
-          ${{ steps.changelog.outputs.changes }}
-        draft: false
-        prerelease: false
-
-    - name: Upload release binary
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url:
-          ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./url-shortener
-        asset_name: url-shortener
-        asset_content_type: application/octet-stream
 
   containerize:
     name: Build and Push Docker Image
@@ -129,6 +113,7 @@ jobs:
     - name: Build and push docker image
       uses: docker/build-push-action@v5
       with:
-        file: 'cmd/url-shortener/Dockerfile'
+        context: .
+        file: './Dockerfile'
         push: true
         tags: 'ghcr.io/${{ github.actor }}/url-shortener:${{ github.ref_name }}'
