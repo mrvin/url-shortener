@@ -33,7 +33,6 @@ func NewCheckAlias(checker AliasChecker) HandlerFunc {
 			Exists: exists,
 			Status: "OK",
 		}
-
 		jsonResponse, err := json.Marshal(&response)
 		if err != nil {
 			return ctx, http.StatusInternalServerError, fmt.Errorf("marshal response: %w", err)
