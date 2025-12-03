@@ -18,7 +18,7 @@ type DBURLGetter interface {
 
 type CacheURLGetter interface {
 	GetURL(ctx context.Context, alias string) (string, error)
-	SetURL(ctx context.Context, url, alias string) error
+	SetURL(ctx context.Context, alias, url string) error
 }
 
 func NewRedirect(st DBURLGetter, cache CacheURLGetter) HandlerFunc {
@@ -42,7 +42,7 @@ func NewRedirect(st DBURLGetter, cache CacheURLGetter) HandlerFunc {
 				return ctx, http.StatusInternalServerError, err
 			}
 			ctx = logger.WithURL(ctx, url)
-			if err := cache.SetURL(ctx, url, alias); err != nil {
+			if err := cache.SetURL(ctx, alias, url); err != nil {
 				slog.WarnContext(ctx, msg, slog.String("warn", err.Error()))
 			}
 		} else {

@@ -12,10 +12,10 @@
 
 ##### Пример запроса
 ```bash
-$ curl -i -X GET 'http://localhost:8080/api/info'
+curl -i -X GET 'http://localhost:8080/api/info'
 ```
 ##### Пример ответа
-```bash
+```json
 {
   "tag": "v0.0.2",
   "hash": "8f32719a5b9e74817ea7c62765545438e39377dd",
@@ -29,10 +29,10 @@ $ curl -i -X GET 'http://localhost:8080/api/info'
 
 ##### Пример запроса
 ```bash
-$ curl -i -X GET 'http://localhost:8080/api/health'
+curl -i -X GET 'http://localhost:8080/api/health'
 ```
 ##### Пример ответа
-```bash
+```json
 {
   "status":"OK"
 }
@@ -48,7 +48,7 @@ $ curl -i -X GET 'http://localhost:8080/api/health'
 
 ##### Пример запроса
 ```bash
-$ curl -i -X POST 'http://localhost:8080/api/users' \
+curl -i -X POST 'http://localhost:8080/api/users' \
 -H "Content-Type: application/json" \
 -d '{
 	"username":"Bob",
@@ -56,7 +56,7 @@ $ curl -i -X POST 'http://localhost:8080/api/users' \
 }'
 ```
 ##### Пример ответа
-```bash
+```json
 {
   "status": "OK"
 }
@@ -73,7 +73,7 @@ $ curl -i -X POST 'http://localhost:8080/api/users' \
 
 ##### Пример запроса
 ```bash
-$ curl -i -X POST 'http://localhost:8080/api/login' \
+curl -i -X POST 'http://localhost:8080/api/login' \
 -H "Content-Type: application/json" \
 -d '{
 	"username":"Bob",
@@ -81,7 +81,7 @@ $ curl -i -X POST 'http://localhost:8080/api/login' \
 }'
 ```
 ##### Пример ответа
-```bash
+```json
 {
   "status": "OK"
 }
@@ -98,7 +98,7 @@ $ curl -i -X POST 'http://localhost:8080/api/login' \
 
 ##### Пример запроса
 ```bash
-$ curl --user Bob:qwerty -i -X POST 'http://localhost:8080/api/data/shorten' \
+curl --user Bob:qwerty -i -X POST 'http://localhost:8080/api/data/shorten' \
 -H "Content-Type: application/json" \
 -d '{
 	"url":"https://en.wikipedia.org/wiki/Systems_design",
@@ -106,7 +106,7 @@ $ curl --user Bob:qwerty -i -X POST 'http://localhost:8080/api/data/shorten' \
 }'
 ```
 ##### Пример ответа
-```bash
+```json
 {
   "alias":"zn9edcu",
   "status":"OK"
@@ -120,7 +120,7 @@ $ curl --user Bob:qwerty -i -X POST 'http://localhost:8080/api/data/shorten' \
 
 ##### Пример запроса
 ```bash
-$ curl -i -X GET 'http://localhost:8080/zn9edcu'
+curl -i -X GET 'http://localhost:8080/zn9edcu'
 ```
 ##### Пример ответа
 ```bash
@@ -133,10 +133,10 @@ $ curl -i -X GET 'http://localhost:8080/zn9edcu'
 
 ##### Пример запроса
 ```bash
-$ curl -i -X GET 'http://localhost:8080/api/check/zn9edcu'
+curl -i -X GET 'http://localhost:8080/api/check/zn9edcu'
 ```
 ##### Пример ответа
-```bash
+```json
 {
   "exists": true,
   "status": "OK"
@@ -149,10 +149,10 @@ $ curl -i -X GET 'http://localhost:8080/api/check/zn9edcu'
 
 ##### Пример запроса
 ```bash
-$ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8080/api/zn9edcu'
+curl --user Bob:qwerty -i -X DELETE 'http://localhost:8080/api/zn9edcu'
 ```
 ##### Пример ответа
-```bash
+```json
 {
   "status":"OK"
 }
@@ -172,10 +172,10 @@ $ curl --user Bob:qwerty -i -X DELETE 'http://localhost:8080/api/zn9edcu'
 
 ##### Пример запроса
 ```bash
-$ curl --user Bob:qwerty -i -X GET 'http://localhost:8080/api/urls?limit=10&offset=0'
+curl --user Bob:qwerty -i -X GET 'http://localhost:8080/api/urls?limit=10&offset=0'
 ```
 ##### Пример ответа
-```bash
+```json
 {
   "urls": [
     {
@@ -197,7 +197,6 @@ $ make run-compose
 ```
 
 ### Todo list
-- Добавить модульные тесты для Login и Info.
 - Добавить интеграционные тесты.
 - Добавить документацию OpenAPI.
 - Добавить более строгую валидацию логина и пароля при регистрации.

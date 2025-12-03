@@ -26,7 +26,7 @@ type Conf struct {
 
 type Cacher interface {
 	GetURL(ctx context.Context, alias string) (string, error)
-	SetURL(ctx context.Context, url, alias string) error
+	SetURL(ctx context.Context, alias, url string) error
 	DeleteURL(ctx context.Context, alias string) error
 }
 
@@ -64,7 +64,7 @@ func (c *Cache) GetURL(ctx context.Context, alias string) (string, error) {
 	return value, nil
 }
 
-func (c *Cache) SetURL(ctx context.Context, url, alias string) error {
+func (c *Cache) SetURL(ctx context.Context, alias, url string) error {
 	if err := c.conn.Set(ctx, alias, url, ttl).Err(); err != nil {
 		return fmt.Errorf("setting url to cache: %w", err)
 	}

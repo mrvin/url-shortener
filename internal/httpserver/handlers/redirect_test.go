@@ -38,7 +38,7 @@ func (m *MockCacheURLGetter) GetURL(_ context.Context, alias string) (string, er
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockCacheURLGetter) SetURL(_ context.Context, url, alias string) error {
+func (m *MockCacheURLGetter) SetURL(_ context.Context, alias, url string) error {
 	args := m.Called(alias, url)
 	return args.Error(0)
 }

@@ -1,10 +1,11 @@
 services:
     url-shortener-prod:
         profiles: ['prod']
-        build:
-         context: ../
-         dockerfile: Dockerfile
-         target: prod
+        image: ghcr.io/mrvin/url-shortener:v0.0.3
+#        build:
+#         context: ../
+#         dockerfile: Dockerfile
+#         target: prod
         ports:
          - "8080:8080"
         env_file:

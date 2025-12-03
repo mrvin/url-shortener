@@ -19,7 +19,7 @@ test:
 	go test ./... -coverprofile=reports/coverage.out
 coverage:
 	go tool cover -func reports/coverage.out | grep "total:" | \
-	awk '{print ((int($$3) > 23) != 1) }'
+	awk '{print ((int($$3) > 27) != 1) }'
 report:
 	go tool cover -html=reports/coverage.out -o reports/cover.html
 .PHONY: test coverage report
@@ -28,7 +28,8 @@ build-compose:
 	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod build
 up-compose:
 	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod up
-run-compose: build-compose up-compose
+run-compose:
+	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod up --build
 down-compose:
 	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod down
 .PHONY: build-compose up-compose run-compose down-compose
