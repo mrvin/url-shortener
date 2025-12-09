@@ -1,0 +1,300 @@
+openapi: 3.1.1
+info:
+  title: Сервис для сокращения URL-адресов
+  version: v1.0.0
+servers:
+  - url: http://localhost:8080/
+paths:
+  /api/info:
+    get:
+      summary: Получение информации о приложении
+      tags:
+        - info
+      responses:
+        '200':
+          description: Успешный ответ с информацией о приложении
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/okResponse'
+  /api/health:
+    get:
+      summary: Проверка работоспособности
+      tags:
+        - info
+      responses:
+        '200':
+          description: Успешный ответ, сервис работает исправно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/okResponse'
+  /api/users:
+    post:
+      summary: Регистрация пользователя
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/registrationRequest'
+      responses:
+        '201':
+          description: Пользователь создан успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/okResponse'
+  /api/login:
+    post:
+      summary: Проверка учетных данных пользователя
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/loginRequest'
+      responses:
+        '200':
+          description: Пользователь создан успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/okResponse'
+  /api/data/shorten:
+    post:
+      summary: Создание нового сокращенного URL-адреса
+      security:
+        - basicAuth: []
+      tags:
+        - urls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/urlRequest'
+      responses:
+        '201':
+          description: Новый URL-адреса создан успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/okResponse'
+  /{alias}:
+    get:
+      summary: Перенаправление URL-адреса
+      tags:
+        - urls
+      parameters:
+        - in: path
+          name: alias
+          schema:
+            type: string
+            example: zn9edcu
+      responses:
+        '302':
+          description: Перенаправление, alias существует
+          content:
+            text/html:
+              schema:
+                type: string
+                example: '<a href="https://en.wikipedia.org/wiki/Systems_design">Found</a>.'
+        '404':
+          description: alias не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/erorrResponse'
+  /api/check/{alias}:
+    get:
+      summary: Проверка доступности алиаса
+      tags:
+        - urls
+      parameters:
+        - in: path
+          name: alias
+          schema:
+            type: string
+            example: zn9edcu
+      responses:
+        '200':
+          description: exists - true, если alias уже существует, иначе false
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/checkAliasResponse'
+  /api/{alias}:
+    delete:
+      summary: Удаление сокращенного URL-адреса
+      security:
+        - basicAuth: []
+      tags:
+        - urls
+      parameters:
+        - in: path
+          name: alias
+          schema:
+            type: string
+            example: zn9edcu
+      responses:
+        '200':
+          description: если URL-адреса c alias удален успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/okResponse'
+  /api/urls:
+    get:
+      summary: Получение списка всех сокращенных URL-адресов пользователя
+      security:
+        - basicAuth: []
+      tags:
+        - urls
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: number
+            minimum: 1
+            default: 10
+          description: Количество url-адресов в ответе
+        - in: query
+          name: offset
+          schema:
+            type: number
+            minimum: 0
+            default: 0
+          description: Смищение от начала
+      responses:
+        '200':
+          description: Успешный ответ со списком URL-адресов пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/urlsResponse'
+                
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    url:
+      type: object
+      required:
+        - url
+        - alias
+        - count
+        - created_at
+      properties:
+        url:
+          type: string
+          example: https://en.wikipedia.org/wiki/Systems_design
+          description: Исходный, полный URL-адрес
+        alias:
+          type: string
+          example: zn9edcu
+          description: Сокращенный путь
+        count:
+          type: integer
+          example: 24812
+          description: Количества переходов по сокращенному URL-адресу
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-09-25T16:18:38.384975Z"
+          description: Дата и время создания сокращенного URL-адреса
+    urlsResponse:
+      type: object
+      required:
+        - urls
+        - total
+        - status
+      properties:
+        urls:
+          type: array
+          items:
+            $ref: '#/components/schemas/url'
+        total:
+          type: integer
+          example: 15
+          description: Общее количество URL-адресов
+        status:
+          type: string
+          example: OK
+    okResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: OK
+    registrationRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: Bob
+        password:
+          type: string
+          format: password
+          example: qwerty
+    loginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: Bob
+        password:
+          type: string
+          format: password
+          example: qwerty
+    urlRequest:
+      type: object
+      required:
+        - url
+        - alias
+      properties:
+        url:
+          type: string
+          example: https://en.wikipedia.org/wiki/Systems_design
+        alias:
+          type: string
+          example: zn9edcu
+    checkAliasResponse:
+      type: object
+      required:
+        - exists
+        - status
+      properties:
+        exists:
+          type: bool
+          example: false
+          description: true, если alias уже существует
+        status:
+          type: string
+          example: OK
+    erorrResponse:
+      type: object
+      required:
+        - status
+        - error
+      properties:
+        status:
+          type: string
+          example: Error
+        error:
+          type: string
+          example: internal error

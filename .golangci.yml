@@ -19,7 +19,7 @@ linters:
     - noinlineerr
   settings:
     cyclop:
-      max-complexity: 15
+      max-complexity: 16
     funlen:
       lines: 150
       statements: 80

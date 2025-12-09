@@ -13,6 +13,7 @@ COPY internal internal
 COPY pkg pkg
 COPY Makefile ./
 COPY .git .git
+COPY api api
 
 # Copy and download dependency using go mod.
 COPY go.mod go.sum ./
@@ -35,6 +36,7 @@ LABEL maintainer="mrvin v.v.vinogradovv@gmail.com"
 
 WORKDIR /
 
+COPY --from=dev ["/app/api/openapi.yaml", "/app/api/openapi.yaml"]
 COPY --from=dev ["/var/log/url-shortener/", "/var/log/url-shortener/"]
 COPY --from=dev ["/usr/share/zoneinfo", "/usr/share/zoneinfo"]
 COPY --from=dev ["/app/bin/url-shortener", "/usr/local/bin/url-shortener"]

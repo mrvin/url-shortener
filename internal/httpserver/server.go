@@ -32,10 +32,11 @@ type ConfHTTPS struct {
 
 //nolint:tagliatelle
 type Conf struct {
-	Host    string    `yaml:"host"`
-	Port    string    `yaml:"port"`
-	IsHTTPS bool      `yaml:"is_https"`
-	HTTPS   ConfHTTPS `yaml:"https"`
+	Host        string    `yaml:"host"`
+	Port        string    `yaml:"port"`
+	IsHTTPS     bool      `yaml:"is_https"`
+	HTTPS       ConfHTTPS `yaml:"https"`
+	DocFilePath string    `yaml:"doc_file_path"`
 }
 
 type Server struct {
@@ -53,6 +54,8 @@ func New(conf *Conf, st storage.Storage, c cache.Cacher) *Server {
 	fileServer := http.FileServer(http.FS(staticFiles))
 	mux.Handle(http.MethodGet+" /static/", fileServer)
 	mux.HandleFunc(http.MethodGet+" /favicon.ico", handlers.GetFavicon)
+
+	mux.HandleFunc(http.MethodGet+" /api/openapi.yaml", handlers.NewAPIDocs(conf.DocFilePath))
 
 	mux.HandleFunc(http.MethodGet+" /api/health", handlers.Health)
 	mux.HandleFunc(http.MethodGet+" /api/info", handlers.ErrorHandler("Info", handlers.Info))

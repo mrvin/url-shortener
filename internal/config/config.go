@@ -80,6 +80,11 @@ func (c *Config) LoadFromEnv() {
 	} else {
 		slog.Warn("Empty server http port")
 	}
+	if docFilePath := os.Getenv("DOC_FILEPATH"); docFilePath != "" {
+		c.HTTP.DocFilePath = docFilePath
+	} else {
+		slog.Warn("Empty doc file path")
+	}
 
 	if logFilePath := os.Getenv("LOGGER_FILEPATH"); logFilePath != "" {
 		c.Logger.FilePath = logFilePath

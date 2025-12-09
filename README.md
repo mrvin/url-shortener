@@ -6,6 +6,9 @@
 #### Фронтенд
 - Эндпоинт: GET /static/index.html
 
+#### Swagger UI
+- Эндпоинт: GET /static/swagger.html
+
 #### Получение информации о приложении
 - Эндпоинт - GET /api/info
 - Статус ответа 200
@@ -123,7 +126,7 @@ curl --user Bob:qwerty -i -X POST 'http://localhost:8080/api/data/shorten' \
 curl -i -X GET 'http://localhost:8080/zn9edcu'
 ```
 ##### Пример ответа
-```bash
+```html
 <a href="https://en.wikipedia.org/wiki/Systems_design">Found</a>.
 ```
 
@@ -198,10 +201,10 @@ $ make run-compose
 
 ### Todo list
 - Добавить интеграционные тесты.
-- Добавить документацию OpenAPI.
 - Добавить более строгую валидацию логина и пароля при регистрации.
 - Добавить в конфигурирование ttl для кэша.
 - Уточнить ошибки валидации.
+- Убрать alias из ответа на создания нового url.
 
 ### Полезные ссылки
 - [Пишем REST API сервис на Go - УЛЬТИМАТИВНЫЙ гайд](https://www.youtube.com/watch?v=rCJvW2xgnk0)
