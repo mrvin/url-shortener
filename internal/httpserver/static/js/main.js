@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await api.shortenUrl({ url, alias });
             
             if (result.status === 'OK') {
-                const shortUrl = `${API_BASE}/${result.alias}`;
+                const shortUrl = `${API_BASE}/${alias}`;
                 showResult(`
                     <h5>✅ Ссылка создана!</h5>
                     <div class="mt-2">

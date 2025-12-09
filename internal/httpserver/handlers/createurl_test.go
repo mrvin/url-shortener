@@ -132,11 +132,8 @@ func TestCreateURL(t *testing.T) {
 				t.Errorf("expected status code %d but received %d", test.StatusCode, res.Code)
 			}
 			if test.StatusCode == http.StatusCreated {
-				var response ResponseSaveURL
+				var response httpresponse.RequestOK
 				json.Unmarshal(res.Body.Bytes(), &response)
-				if response.Alias != test.Alias {
-					t.Errorf(`expected alias "%s" but received "%s"`, test.Alias, response.Alias)
-				}
 				if response.Status != test.ExpectedStatus {
 					t.Errorf(`expected status "%s" but received "%s"`, test.ExpectedStatus, response.Status)
 				}

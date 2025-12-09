@@ -12,6 +12,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/mrvin/url-shortener/internal/logger"
 	"github.com/mrvin/url-shortener/internal/storage"
+	httpresponse "github.com/mrvin/url-shortener/pkg/http/response"
 )
 
 type URLCreator interface {
@@ -21,11 +22,6 @@ type URLCreator interface {
 type RequestSaveURL struct {
 	URL   string `json:"url"   validate:"required,url"`
 	Alias string `json:"alias" validate:"required,mybase64"`
-}
-
-type ResponseSaveURL struct {
-	Alias  string `json:"alias"`
-	Status string `json:"status"`
 }
 
 func NewSaveURL(creator URLCreator) HandlerFunc {
@@ -78,19 +74,7 @@ func NewSaveURL(creator URLCreator) HandlerFunc {
 		}
 
 		// Write json response
-		response := ResponseSaveURL{
-			Alias:  request.Alias,
-			Status: "OK",
-		}
-		jsonResponse, err := json.Marshal(&response)
-		if err != nil {
-			return ctx, http.StatusInternalServerError, fmt.Errorf("marshal response: %w", err)
-		}
-		res.Header().Set("Content-Type", "application/json; charset=utf-8")
-		res.WriteHeader(http.StatusCreated)
-		if _, err := res.Write(jsonResponse); err != nil {
-			return ctx, http.StatusInternalServerError, fmt.Errorf("write response: %w", err)
-		}
+		httpresponse.WriteOK(res, http.StatusCreated)
 
 		return ctx, http.StatusCreated, nil
 	}
