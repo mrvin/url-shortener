@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
+	// Import pgx driver for database/sql.
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/mrvin/url-shortener/internal/storage"
 )
 
@@ -59,9 +61,10 @@ func New(ctx context.Context, conf *Conf) (*Storage, error) {
 
 func (s *Storage) CreateUser(ctx context.Context, user *storage.User) error {
 	if _, err := s.insertUser.ExecContext(ctx, user.Name, user.HashPassword, user.Role); err != nil {
-		var pgErr *pq.Error
+		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.Code.Name() == "unique_violation" {
+			// unique_violation SQLSTATE
+			if pgErr.Code == "23505" {
 				return storage.ErrUserExists
 			}
 		}
@@ -88,9 +91,9 @@ func (s *Storage) GetUser(ctx context.Context, name string) (*storage.User, erro
 
 func (s *Storage) CreateURL(ctx context.Context, username, url, alias string) error {
 	if _, err := s.insertURL.ExecContext(ctx, url, alias, username); err != nil {
-		var pgErr *pq.Error
+		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
-			if pgErr.Code.Name() == "unique_violation" {
+			if pgErr.Code == "23505" {
 				return storage.ErrAliasExists
 			}
 		}
@@ -212,7 +215,7 @@ func (s *Storage) connect(ctx context.Context) error {
 	var err error
 	dbConfStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		s.conf.Host, s.conf.Port, s.conf.User, s.conf.Password, s.conf.Name)
-	s.db, err = sql.Open("postgres", dbConfStr)
+	s.db, err = sql.Open("pgx", dbConfStr)
 	if err != nil {
 		return fmt.Errorf("open: %w", err)
 	}

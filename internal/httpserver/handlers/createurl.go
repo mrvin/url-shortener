@@ -66,7 +66,7 @@ func NewSaveURL(creator URLCreator) HandlerFunc {
 		}
 
 		if err := creator.CreateURL(ctx, username, request.URL, request.Alias); err != nil {
-			err := fmt.Errorf("saving url to storage: %w", err)
+			err = fmt.Errorf("saving url to storage: %w", err)
 			if errors.Is(err, storage.ErrAliasExists) {
 				return ctx, http.StatusConflict, err
 			}
