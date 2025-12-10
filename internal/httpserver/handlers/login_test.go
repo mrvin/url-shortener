@@ -85,7 +85,7 @@ func TestLogin(t *testing.T) {
 			if err != nil {
 				t.Fatalf("cant marshal json: %v", err)
 			}
-			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/api/login", bytes.NewReader(dataRequest))
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/api/users/login", bytes.NewReader(dataRequest))
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}

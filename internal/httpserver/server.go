@@ -51,24 +51,27 @@ var staticFiles embed.FS
 func New(conf *Conf, st storage.Storage, c cache.Cacher) *Server {
 	mux := http.NewServeMux()
 
+	// frontend
 	fileServer := http.FileServer(http.FS(staticFiles))
 	mux.Handle(http.MethodGet+" /static/", fileServer)
 	mux.HandleFunc(http.MethodGet+" /favicon.ico", handlers.GetFavicon)
 
+	// docs
 	mux.HandleFunc(http.MethodGet+" /api/openapi.yaml", handlers.NewAPIDocs(conf.DocFilePath))
 
+	// info
 	mux.HandleFunc(http.MethodGet+" /api/health", handlers.Health)
 	mux.HandleFunc(http.MethodGet+" /api/info", handlers.ErrorHandler("Info", handlers.Info))
 
+	// users
 	mux.HandleFunc(http.MethodPost+" /api/users", handlers.ErrorHandler("Registration user", handlers.NewRegistration(st)))
-	mux.HandleFunc(http.MethodPost+" /api/login", handlers.ErrorHandler("Login user", handlers.NewLogin(st)))
+	mux.HandleFunc(http.MethodPost+" /api/users/login", handlers.ErrorHandler("Login user", handlers.NewLogin(st)))
 
-	mux.HandleFunc(http.MethodPost+" /api/data/shorten", auth(handlers.ErrorHandler("Save url", handlers.NewSaveURL(st)), st))
+	// urls
+	mux.HandleFunc(http.MethodPost+" /api/urls", auth(handlers.ErrorHandler("Save url", handlers.NewSaveURL(st)), st))
 	mux.HandleFunc(http.MethodGet+" /api/urls", auth(handlers.ErrorHandler("Get urls", handlers.NewGetURLs(st)), st))
-	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", auth(handlers.ErrorHandler("Delete url", handlers.NewDeleteURL(st, c)), st))
-
-	mux.HandleFunc(http.MethodGet+" /api/check/{alias...}", handlers.ErrorHandler("Check alias", handlers.NewCheckAlias(st)))
-
+	mux.HandleFunc(http.MethodGet+" /api/urls/check/{alias...}", handlers.ErrorHandler("Check alias", handlers.NewCheckAlias(st)))
+	mux.HandleFunc(http.MethodDelete+" /api/urls/{alias...}", auth(handlers.ErrorHandler("Delete url", handlers.NewDeleteURL(st, c)), st))
 	mux.HandleFunc(http.MethodGet+" /{alias...}", handlers.ErrorHandler("Redirect", handlers.NewRedirect(st, c)))
 
 	loggerServer := logger.Logger{Inner: mux}

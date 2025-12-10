@@ -66,7 +66,7 @@ curl -i -X POST 'http://localhost:8080/api/users' \
 ```
 
 #### Проверка учетных данных пользователя
-- Эндпоинт - POST /api/login
+- Эндпоинт - POST /api/users/login
 - Параметры запроса:
 	- JSON-объект в теле запроса с параметрами:
 		- username – имя пользователя
@@ -76,7 +76,7 @@ curl -i -X POST 'http://localhost:8080/api/users' \
 
 ##### Пример запроса
 ```bash
-curl -i -X POST 'http://localhost:8080/api/login' \
+curl -i -X POST 'http://localhost:8080/api/users/login' \
 -H "Content-Type: application/json" \
 -d '{
 	"username":"Bob",
@@ -91,7 +91,7 @@ curl -i -X POST 'http://localhost:8080/api/login' \
 ```
 
 #### Создание нового сокращенного URL-адреса
-- Эндпоинт: POST /api/data/shorten
+- Эндпоинт: POST /api/urls
 - Параметры запроса:
 	- JSON-объект в теле запроса с параметрами:
 		- url – исходный, полный URL-адрес
@@ -100,7 +100,7 @@ curl -i -X POST 'http://localhost:8080/api/login' \
 
 ##### Пример запроса
 ```bash
-curl --user Bob:qwerty -i -X POST 'http://localhost:8080/api/data/shorten' \
+curl --user Bob:qwerty -i -X POST 'http://localhost:8080/api/urls' \
 -H "Content-Type: application/json" \
 -d '{
 	"url":"https://en.wikipedia.org/wiki/Systems_design",
@@ -129,12 +129,12 @@ curl -i -X GET 'http://localhost:8080/zn9edcu'
 ```
 
 #### Проверка доступности алиаса
-- Эндпоинт: GET /api/check/{alias}
+- Эндпоинт: GET /api/urls/check/{alias}
 - Статус ответа 200
 
 ##### Пример запроса
 ```bash
-curl -i -X GET 'http://localhost:8080/api/check/zn9edcu'
+curl -i -X GET 'http://localhost:8080/api/urls/check/zn9edcu'
 ```
 ##### Пример ответа
 ```json
@@ -145,12 +145,12 @@ curl -i -X GET 'http://localhost:8080/api/check/zn9edcu'
 ```
 
 #### Удаление сокращенного URL-адреса
-- Эндпоинт: DELETE /api/{alias}
+- Эндпоинт: DELETE /api/urls/{alias}
 - Статус ответа 200 если URL-адреса c 'alias' удален успешно
 
 ##### Пример запроса
 ```bash
-curl --user Bob:qwerty -i -X DELETE 'http://localhost:8080/api/zn9edcu'
+curl --user Bob:qwerty -i -X DELETE 'http://localhost:8080/api/urls/zn9edcu'
 ```
 ##### Пример ответа
 ```json

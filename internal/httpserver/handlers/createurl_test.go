@@ -119,7 +119,7 @@ func TestCreateURL(t *testing.T) {
 				t.Fatalf("cant marshal json: %v", err)
 			}
 			ctx := log.WithUsername(context.Background(), test.Username)
-			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/api/data/shorten", bytes.NewReader(dataRequest))
+			req, err := http.NewRequestWithContext(ctx, http.MethodPost, "/api/urls", bytes.NewReader(dataRequest))
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}

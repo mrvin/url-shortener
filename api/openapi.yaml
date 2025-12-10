@@ -5,18 +5,6 @@ info:
 servers:
   - url: http://localhost:8080/
 paths:
-  /api/info:
-    get:
-      summary: Получение информации о приложении
-      tags:
-        - info
-      responses:
-        '200':
-          description: Успешный ответ с информацией о приложении
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/okResponse'
   /api/health:
     get:
       summary: Проверка работоспособности
@@ -29,6 +17,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/okResponse'
+  /api/info:
+    get:
+      summary: Получение информации о приложении
+      tags:
+        - info
+      responses:
+        '200':
+          description: Успешный ответ с информацией о приложении
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/infoResponse'
   /api/users:
     post:
       summary: Регистрация пользователя
@@ -47,7 +47,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/okResponse'
-  /api/login:
+  /api/users/login:
     post:
       summary: Проверка учетных данных пользователя
       tags:
@@ -65,7 +65,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/okResponse'
-  /api/data/shorten:
+  /api/urls:
     post:
       summary: Создание нового сокращенного URL-адреса
       security:
@@ -85,70 +85,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/okResponse'
-  /{alias}:
-    get:
-      summary: Перенаправление URL-адреса
-      tags:
-        - urls
-      parameters:
-        - in: path
-          name: alias
-          schema:
-            type: string
-            example: zn9edcu
-      responses:
-        '302':
-          description: Перенаправление, alias существует
-          content:
-            text/html:
-              schema:
-                type: string
-                example: '<a href="https://en.wikipedia.org/wiki/Systems_design">Found</a>.'
-        '404':
-          description: alias не найден
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/erorrResponse'
-  /api/check/{alias}:
-    get:
-      summary: Проверка доступности алиаса
-      tags:
-        - urls
-      parameters:
-        - in: path
-          name: alias
-          schema:
-            type: string
-            example: zn9edcu
-      responses:
-        '200':
-          description: exists - true, если alias уже существует, иначе false
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/checkAliasResponse'
-  /api/{alias}:
-    delete:
-      summary: Удаление сокращенного URL-адреса
-      security:
-        - basicAuth: []
-      tags:
-        - urls
-      parameters:
-        - in: path
-          name: alias
-          schema:
-            type: string
-            example: zn9edcu
-      responses:
-        '200':
-          description: если URL-адреса c alias удален успешно
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/okResponse'
-  /api/urls:
     get:
       summary: Получение списка всех сокращенных URL-адресов пользователя
       security:
@@ -177,6 +113,69 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/urlsResponse'
+  /{alias}:
+    get:
+      summary: Перенаправление URL-адреса
+      tags:
+        - urls
+      parameters:
+        - in: path
+          name: alias
+          schema:
+            type: string
+            example: zn9edcu
+      responses:
+        '302':
+          description: Перенаправление, alias существует
+          content:
+            text/html:
+              schema:
+                type: string
+                example: '<a href="https://en.wikipedia.org/wiki/Systems_design">Found</a>.'
+        '404':
+          description: alias не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/erorrResponse'
+  /api/urls/check/{alias}:
+    get:
+      summary: Проверка доступности алиаса
+      tags:
+        - urls
+      parameters:
+        - in: path
+          name: alias
+          schema:
+            type: string
+            example: zn9edcu
+      responses:
+        '200':
+          description: exists - true, если alias уже существует, иначе false
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/checkAliasResponse'
+  /api/urls/{alias}:
+    delete:
+      summary: Удаление сокращенного URL-адреса
+      security:
+        - basicAuth: []
+      tags:
+        - urls
+      parameters:
+        - in: path
+          name: alias
+          schema:
+            type: string
+            example: zn9edcu
+      responses:
+        '200':
+          description: если URL-адреса c alias удален успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/okResponse'
                 
 components:
   securitySchemes:
@@ -286,6 +285,26 @@ components:
         status:
           type: string
           example: OK
+    infoResponse:
+      type: object
+      required:
+        - tag
+        - hash
+        - date
+      properties:
+        tag:
+          type: string
+          example: v1.0.0
+          description: версия приложения
+        hash:
+          type: string
+          example: 8f32719a7b9e74817ea7c62765545438e39377dd
+          description: хэш коммита приложения
+        date:
+          type: string
+          format: date-time
+          example: "2025-11-21.15:06:09"
+          description: Дата и время сборки приложения
     erorrResponse:
       type: object
       required:

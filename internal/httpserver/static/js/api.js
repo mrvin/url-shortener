@@ -35,7 +35,7 @@ class URLShortenerAPI {
 
     // Вход пользователя
     async login(userData) {
-        const response = await fetch(`${this.baseURL}/api/login`, {
+        const response = await fetch(`${this.baseURL}/api/users/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userData)
@@ -45,7 +45,7 @@ class URLShortenerAPI {
 
     // Создание короткой ссылки
     async shortenUrl(urlData) {
-        const response = await fetch(`${this.baseURL}/api/data/shorten`, {
+        const response = await fetch(`${this.baseURL}/api/urls`, {
             method: 'POST',
             headers: this.getAuthHeaders(),
             body: JSON.stringify(urlData)
@@ -55,7 +55,7 @@ class URLShortenerAPI {
 
     // Проверка доступности алиаса
     async checkAlias(alias) {
-        const response = await fetch(`${this.baseURL}/api/check/${alias}`);
+        const response = await fetch(`${this.baseURL}/api/urls/check/${alias}`);
         return await response.json();
     }
 
@@ -69,7 +69,7 @@ class URLShortenerAPI {
 
     // Удаление ссылки
     async deleteUrl(alias) {
-        const response = await fetch(`${this.baseURL}/api/${alias}`, {
+        const response = await fetch(`${this.baseURL}/api/urls/${alias}`, {
             method: 'DELETE',
             headers: this.getAuthHeaders()
         });

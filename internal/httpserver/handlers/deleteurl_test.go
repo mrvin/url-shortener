@@ -74,14 +74,14 @@ func TestDeleteURL(t *testing.T) {
 	mockDBURLDeleter := new(MockDBURLDeleter)
 	mockCacheURLDeleter := new(MockCacheURLDeleter)
 	mux := http.NewServeMux()
-	mux.HandleFunc(http.MethodDelete+" /api/{alias...}", ErrorHandler("Delete url", NewDeleteURL(mockDBURLDeleter, mockCacheURLDeleter)))
+	mux.HandleFunc(http.MethodDelete+" /api/urls/{alias...}", ErrorHandler("Delete url", NewDeleteURL(mockDBURLDeleter, mockCacheURLDeleter)))
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			t.Parallel()
 
 			res := httptest.NewRecorder()
 			ctx := log.WithUsername(context.Background(), test.Username)
-			req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "/api/"+test.Alias, nil)
+			req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "/api/urls/"+test.Alias, nil)
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}

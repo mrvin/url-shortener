@@ -62,13 +62,13 @@ func TestCheckAlias(t *testing.T) {
 
 	mockAliasChecker := new(MockAliasChecker)
 	mux := http.NewServeMux()
-	mux.HandleFunc(http.MethodGet+" /api/check/{alias...}", ErrorHandler("Check alias", NewCheckAlias(mockAliasChecker)))
+	mux.HandleFunc(http.MethodGet+" /api/urls/check/{alias...}", ErrorHandler("Check alias", NewCheckAlias(mockAliasChecker)))
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			t.Parallel()
 
 			res := httptest.NewRecorder()
-			req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/api/check/"+test.Alias, nil)
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, "/api/urls/check/"+test.Alias, nil)
 			if err != nil {
 				t.Fatalf("cant create new request: %v", err)
 			}

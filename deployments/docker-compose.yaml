@@ -1,7 +1,7 @@
 services:
     url-shortener-prod:
         profiles: ['prod']
-        image: ghcr.io/mrvin/url-shortener:v0.0.3
+        image: ghcr.io/mrvin/url-shortener:v1.0.0
 #        build:
 #         context: ../
 #         dockerfile: Dockerfile
@@ -68,4 +68,4 @@ services:
           test: ["CMD", "redis-cli", "ping"]
           interval: 1s
         volumes:
-        - "${HOME}/volumes_docker/url-shortener/data:/data/"
+         - "${HOME}/volumes_docker/url-shortener/data:/data/"
