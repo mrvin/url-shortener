@@ -24,9 +24,15 @@ report:
 	go tool cover -html=reports/coverage.out -o reports/cover.html
 .PHONY: test coverage report
 
+certgen:
+	mkdir -p cert
+	openssl req -nodes -x509 -newkey rsa:4096 \
+		-keyout cert/key.pem -out cert/cert.pem -days 365 \
+		-subj "/C=RU/L=Saint Petersburg/O=URL-shortener Corp./OU=URL-shortener/emailAddress=v.v.vinogradovv@gmail.com"
 run:
+	mkdir -p cert
 	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod up --build
 down:
 	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod down
-.PHONY: run down
+.PHONY: certgen run down
 

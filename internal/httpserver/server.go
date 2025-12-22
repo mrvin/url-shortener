@@ -24,7 +24,7 @@ const readTimeout = 5   // in second
 const writeTimeout = 10 // in second
 const idleTimeout = 1   // in minute
 
-type ConfHTTPS struct {
+type ConfTLS struct {
 	CertFile string
 	KeyFile  string
 }
@@ -32,8 +32,8 @@ type ConfHTTPS struct {
 type Conf struct {
 	Host        string
 	Port        string
-	IsHTTPS     bool
-	HTTPS       ConfHTTPS
+	IsTLS       bool
+	TLS         ConfTLS
 	DocFilePath string
 }
 
@@ -97,8 +97,8 @@ func (s *Server) Run(ctx context.Context) {
 
 	go func() {
 		defer cancel()
-		if s.conf.IsHTTPS {
-			if err := s.ListenAndServeTLS(s.conf.HTTPS.CertFile, s.conf.HTTPS.KeyFile); !errors.Is(err, http.ErrServerClosed) {
+		if s.conf.IsTLS {
+			if err := s.ListenAndServeTLS(s.conf.TLS.CertFile, s.conf.TLS.KeyFile); !errors.Is(err, http.ErrServerClosed) {
 				slog.Error("Failed to start https server: " + err.Error())
 				return
 			}
@@ -109,7 +109,7 @@ func (s *Server) Run(ctx context.Context) {
 			}
 		}
 	}()
-	if s.conf.IsHTTPS {
+	if s.conf.IsTLS {
 		slog.Info("Start http server: https://" + s.Addr)
 	} else {
 		slog.Info("Start http server: http://" + s.Addr)

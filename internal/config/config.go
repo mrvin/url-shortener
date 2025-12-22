@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/mrvin/url-shortener/internal/cache"
 	"github.com/mrvin/url-shortener/internal/httpserver"
@@ -19,6 +20,8 @@ type Config struct {
 }
 
 // LoadFromEnv will load configuration solely from the environment.
+//
+//nolint:cyclop,gocognit
 func (c *Config) LoadFromEnv() {
 	if host := os.Getenv("POSTGRES_HOST"); host != "" {
 		c.DB.Host = host
@@ -79,6 +82,21 @@ func (c *Config) LoadFromEnv() {
 		c.HTTP.Port = port
 	} else {
 		slog.Warn("Empty server http port")
+	}
+	if tlsEnable := os.Getenv("TLS_ENABLE"); strings.ToLower(tlsEnable) == "true" {
+		c.HTTP.IsTLS = true
+		if certFile := os.Getenv("TLS_CERT_FILE"); certFile != "" {
+			c.HTTP.TLS.CertFile = certFile
+		} else {
+			slog.Warn("Empty cert file")
+		}
+		if keyFile := os.Getenv("TLS_KEY_FILE"); keyFile != "" {
+			c.HTTP.TLS.KeyFile = keyFile
+		} else {
+			slog.Warn("Empty key file")
+		}
+	} else {
+		slog.Warn("TLS is disabled")
 	}
 	if docFilePath := os.Getenv("DOC_FILEPATH"); docFilePath != "" {
 		c.HTTP.DocFilePath = docFilePath
