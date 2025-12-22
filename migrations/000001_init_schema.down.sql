@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS users;
-DROP TYPE IF EXISTS gender_type;
+DROP TYPE IF EXISTS role_type;
 
-DROP INDEX IF EXISTS idx_url_username;
-DROP TABLE IF EXISTS url;
+DROP INDEX IF EXISTS idx_urls_username;
+DROP TABLE IF EXISTS urls;

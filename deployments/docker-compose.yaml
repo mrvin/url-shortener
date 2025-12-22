@@ -37,7 +37,7 @@ services:
          - ${HOME}/volumes_docker/url-shortener/log:/var/log/url-shortener/
 
     migrate:
-        image: migrate/migrate:v4.17.1
+        image: migrate/migrate:v4.19.1
         command: ["-path", "/migrations", "-database",  "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable", "up"]
         depends_on:
           postgres:
@@ -47,10 +47,9 @@ services:
 
     # Create service with PostgreSQL.
     postgres:
-        image: postgres:17.0-alpine3.20
+        image: postgres:18.1-alpine3.23
         ports:
          - "5432"
-        user: root
         env_file:
          - ../configs/url-shortener.env
         healthcheck:
