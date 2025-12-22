@@ -24,13 +24,9 @@ report:
 	go tool cover -html=reports/coverage.out -o reports/cover.html
 .PHONY: test coverage report
 
-build-compose:
-	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod build
-up-compose:
-	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod up
-run-compose:
+run:
 	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod up --build
-down-compose:
+down:
 	docker compose -f deployments/docker-compose.yaml --env-file configs/url-shortener.env --profile prod down
-.PHONY: build-compose up-compose run-compose down-compose
+.PHONY: run down
 

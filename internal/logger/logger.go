@@ -21,8 +21,8 @@ const (
 const logFileMode = 0755
 
 type Conf struct {
-	FilePath string `yaml:"filepath"`
-	Level    string `yaml:"level"`
+	FilePath string
+	Level    string
 }
 
 type ContextHandler struct {

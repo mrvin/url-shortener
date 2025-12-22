@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	stdlog "log"
+	"log"
 	"log/slog"
 
 	"github.com/mrvin/url-shortener/internal/cache"
@@ -20,7 +20,7 @@ func main() {
 	// init logger
 	logFile, err := logger.Init(&conf.Logger)
 	if err != nil {
-		stdlog.Printf("Init logger: %v\n", err)
+		log.Printf("Init logger: %v", err)
 		return
 	}
 	slog.Info("Init logger", slog.String("level", conf.Logger.Level))

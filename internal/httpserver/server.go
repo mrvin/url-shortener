@@ -24,19 +24,17 @@ const readTimeout = 5   // in second
 const writeTimeout = 10 // in second
 const idleTimeout = 1   // in minute
 
-//nolint:tagliatelle
 type ConfHTTPS struct {
-	CertFile string `yaml:"cert_file"`
-	KeyFile  string `yaml:"key_file"`
+	CertFile string
+	KeyFile  string
 }
 
-//nolint:tagliatelle
 type Conf struct {
-	Host        string    `yaml:"host"`
-	Port        string    `yaml:"port"`
-	IsHTTPS     bool      `yaml:"is_https"`
-	HTTPS       ConfHTTPS `yaml:"https"`
-	DocFilePath string    `yaml:"doc_file_path"`
+	Host        string
+	Port        string
+	IsHTTPS     bool
+	HTTPS       ConfHTTPS
+	DocFilePath string
 }
 
 type Server struct {

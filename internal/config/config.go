@@ -12,10 +12,10 @@ import (
 )
 
 type Config struct {
-	DB     sqlstorage.Conf `yaml:"db"`
-	Cache  cache.Conf      `yaml:"cache"`
-	HTTP   httpserver.Conf `yaml:"http"`
-	Logger logger.Conf     `yaml:"logger"`
+	DB     sqlstorage.Conf
+	Cache  cache.Conf
+	HTTP   httpserver.Conf
+	Logger logger.Conf
 }
 
 // LoadFromEnv will load configuration solely from the environment.
