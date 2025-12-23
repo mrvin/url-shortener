@@ -17,6 +17,7 @@ services:
             condition: service_completed_successfully
         volumes:
          - ${HOME}/volumes_docker/url-shortener/log:/var/log/url-shortener/
+         - ../certs:/app/certs/
 
     url-shortener-dev:
         profiles: ['dev']
@@ -35,6 +36,7 @@ services:
             condition: service_completed_successfully
         volumes:
          - ${HOME}/volumes_docker/url-shortener/log:/var/log/url-shortener/
+         - ../certs:/app/certs/
 
     migrate:
         image: migrate/migrate:v4.19.1
