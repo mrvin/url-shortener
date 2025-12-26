@@ -26,7 +26,6 @@
 ### Сборка и запуск приложения в Docker Compose
 ```bash
 make run
-...............
 ```
 
 ### Todo list

@@ -11,11 +11,14 @@ import (
 	// Import pgx driver for database/sql.
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/mrvin/url-shortener/internal/storage"
+	"github.com/mrvin/url-shortener/pkg/retry"
 )
 
 const maxOpenConns = 25
 const maxIdleConns = 25
 const connMaxLifetime = 5 * time.Minute
+
+const retriesPing = 5
 
 type Conf struct {
 	Host     string
@@ -220,8 +223,9 @@ func (s *Storage) connect(ctx context.Context) error {
 		return fmt.Errorf("open: %w", err)
 	}
 
-	if err := s.db.PingContext(ctx); err != nil {
-		return fmt.Errorf("ping: %w", err)
+	retryPing := retry.Retry(s.db.PingContext, retriesPing)
+	if err := retryPing(ctx); err != nil {
+		return fmt.Errorf("connection db: %w", err)
 	}
 
 	// Setting db connections pool.

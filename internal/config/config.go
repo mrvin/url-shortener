@@ -67,6 +67,7 @@ func (c *Config) LoadFromEnv() {
 	if strName := os.Getenv("REDIS_DB"); strName != "" {
 		if name, err := strconv.Atoi(strName); err != nil {
 			slog.Warn("invalid redis db name: " + strName)
+		} else {
 			c.Cache.Name = name
 		}
 	} else {
