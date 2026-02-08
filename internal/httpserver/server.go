@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"context"
-	"embed"
 	"errors"
 	"log/slog"
 	"net"
@@ -43,16 +42,8 @@ type Server struct {
 	conf *Conf
 }
 
-//go:embed static
-var staticFiles embed.FS
-
 func New(conf *Conf, st storage.Storage, c cache.Cacher) *Server {
 	mux := http.NewServeMux()
-
-	// frontend
-	fileServer := http.FileServer(http.FS(staticFiles))
-	mux.Handle(http.MethodGet+" /static/", fileServer)
-	mux.HandleFunc(http.MethodGet+" /favicon.ico", handlers.GetFavicon)
 
 	// docs
 	mux.HandleFunc(http.MethodGet+" /api/openapi.yaml", handlers.NewAPIDocs(conf.DocFilePath))

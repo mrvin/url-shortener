@@ -1,10 +1,10 @@
 ### Описание методов API
 
 #### Фронтенд
-- Эндпоинт: GET /static/index.html
+- Эндпоинт: GET /index.html
 
 #### Swagger UI
-- Эндпоинт: GET /static/swagger.html
+- Эндпоинт: GET /swagger.html
 
 #### Получение информации о приложении
 - Эндпоинт - GET /api/info

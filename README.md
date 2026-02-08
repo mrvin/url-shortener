@@ -40,5 +40,6 @@ make run
 
 ### Полезные ссылки
 - [Пишем REST API сервис на Go - УЛЬТИМАТИВНЫЙ гайд](https://www.youtube.com/watch?v=rCJvW2xgnk0)
+- [Nginx — Простым языком на понятном примере](https://www.youtube.com/watch?v=2aoOEnZmCmQ)
 - [LRU cache](https://github.com/hashicorp/golang-lru)
 - [bombardier](https://github.com/codesenberg/bombardier)
