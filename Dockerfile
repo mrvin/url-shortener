@@ -23,6 +23,8 @@ RUN make build
 
 RUN mkdir /var/log/url-shortener/
 
+COPY --from=ghcr.io/tarampampam/microcheck:1 ["/bin/httpscheck", "/bin/httpscheck"]
+
 ENV TZ=Europe/Moscow
 
 EXPOSE 8080
@@ -36,6 +38,7 @@ LABEL maintainer="mrvin v.v.vinogradovv@gmail.com"
 
 WORKDIR /
 
+COPY --from=dev ["/bin/httpscheck", "/bin/httpscheck"]
 COPY --from=dev ["/app/api/openapi.yaml", "/app/api/openapi.yaml"]
 COPY --from=dev ["/var/log/url-shortener/", "/var/log/url-shortener/"]
 COPY --from=dev ["/usr/share/zoneinfo", "/usr/share/zoneinfo"]
