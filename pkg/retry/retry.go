@@ -7,15 +7,12 @@ import (
 	"time"
 )
 
-type Connector func(ctx context.Context) error
+type Func func(ctx context.Context) error
 
-// Retry returns a function matching the retryConnector type that
-// is trying to establish a connection with the database retries number
-// every delay time.
-func Retry(connector Connector, retries int) Connector {
+func Retry(f Func, retries int) Func {
 	return func(ctx context.Context) error {
 		for r := 0; ; r++ {
-			err := connector(ctx)
+			err := f(ctx)
 			if err == nil || r >= retries {
 				return err
 			}

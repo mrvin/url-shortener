@@ -9,11 +9,11 @@ import (
 	"github.com/mrvin/url-shortener/internal/cache"
 	"github.com/mrvin/url-shortener/internal/httpserver"
 	"github.com/mrvin/url-shortener/internal/logger"
-	sqlstorage "github.com/mrvin/url-shortener/internal/storage/sql"
+	"github.com/mrvin/url-shortener/internal/storage/postgresql"
 )
 
 type Config struct {
-	DB     sqlstorage.Conf
+	DB     postgresql.Conf
 	Cache  cache.Conf
 	HTTP   httpserver.Conf
 	Logger logger.Conf

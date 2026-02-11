@@ -9,7 +9,7 @@ import (
 	"github.com/mrvin/url-shortener/internal/config"
 	"github.com/mrvin/url-shortener/internal/httpserver"
 	"github.com/mrvin/url-shortener/internal/logger"
-	sqlstorage "github.com/mrvin/url-shortener/internal/storage/sql"
+	"github.com/mrvin/url-shortener/internal/storage/postgresql"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 
 	// init storage
 	ctx := context.Background()
-	st, err := sqlstorage.New(ctx, &conf.DB)
+	st, err := postgresql.New(ctx, &conf.DB)
 	if err != nil {
 		slog.Error("Failed to init storage: " + err.Error())
 		return
